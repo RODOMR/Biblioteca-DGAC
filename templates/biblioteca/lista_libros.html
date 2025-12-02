@@ -1,0 +1,320 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% load permisos %}
+
+{% block title %}
+    Catálogo Unificado
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .catalog-hero-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+  }
+  .catalog-chip {
+      font-size: .8rem;
+      border-radius: 999px;
+      padding: .15rem .7rem;
+      background: #e0f2fe;
+      color: #0369a1;
+      display: inline-flex;
+      align-items: center;
+      gap: .25rem;
+  }
+  .card-item {
+      border-radius: 1rem;
+      overflow: hidden;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .card-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 .75rem 1.5rem rgba(15,23,42,.12);
+      border-color: rgba(37,99,235,.45);
+  }
+  .badge-soft {
+      background: #eef2ff;
+      color: #4f46e5;
+      font-weight: 500;
+  }
+  .card-header-type {
+      font-size: .85rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+  }
+</style>
+
+<div class="row mb-3 align-items-center">
+    <div class="col-lg-8">
+        <h1 class="catalog-hero-title mb-1">
+            <i class="bi bi-bookshelf me-2 text-primary"></i> Catálogo de Biblioteca
+        </h1>
+        <p class="text-muted mb-2">
+            Explora nuestra colección de libros, manuales y otros materiales.
+        </p>
+        <div>
+            <span class="catalog-chip">
+                <i class="bi bi-collection"></i>
+                {{ page_obj.paginator.count }} ítem(s) encontrados
+            </span>
+            {% if filtro_seleccionado %}
+                <span class="badge badge-soft ms-2">
+                    <i class="bi bi-filter-circle me-1"></i>
+                    Filtro: {{ filtro_seleccionado }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form method="GET" action="{% url 'catalogo' %}" class="mb-4">
+    <div class="row g-2">
+        <div class="col-md-4">
+            <div class="input-group input-group-lg shadow-sm">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-filter"></i>
+                </span>
+                <select class="form-select border-start-0" name="filtro" onchange="this.form.submit()">
+                    <option value="">Todas las categorías / tipos</option>
+                    {% for opcion in opciones_filtro %}
+                        <option value="{{ opcion }}" {% if opcion == filtro_seleccionado %}selected{% endif %}>
+                            {{ opcion }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="input-group input-group-lg shadow-sm">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control border-start-0"
+                       placeholder="Buscar por título, autor o código…"
+                       name="q"
+                       value="{{ search_query }}"
+                       id="barra-busqueda">
+            </div>
+        </div>
+
+        <div class="col-md-2 d-grid">
+            <div class="btn-group btn-group-lg" role="group">
+                <button class="btn btn-primary" type="submit">
+                    Buscar
+                </button>
+                <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    {% for obj in page_obj %}
+    <div class="col-md-4 mb-4">
+        <div class="card card-item h-100 {% if not obj.es_libro %}border-secondary-subtle{% endif %}">
+            
+            {# CABECERA TIPO + FAVORITO #}
+            <div class="card-header d-flex justify-content-between align-items-center
+                        {% if obj.es_libro %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}">
+                <span class="card-header-type">
+                    {% if obj.es_libro %}
+                        <i class="bi bi-book-fill me-1"></i> LIBRO
+                    {% else %}
+                        <i class="bi bi-archive-fill me-1"></i> MATERIAL
+                    {% endif %}
+                </span>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'agregar_favorito' obj.item.id %}?tipo={% if obj.es_libro %}libro{% else %}material{% endif %}" 
+                       class="text-white text-decoration-none"
+                       title="{% if obj.es_favorito %}Quitar de favoritos{% else %}Añadir a favoritos{% endif %}">
+                        <i class="bi {% if obj.es_favorito %}bi-bookmark-star-fill{% else %}bi-bookmark{% endif %} fs-5"></i>
+                    </a>
+                {% endif %}
+            </div>
+
+            {# CUERPO DE LA CARD #}
+            <div class="card-body">
+                <h5 class="card-title text-truncate mb-1">
+                    {% if obj.es_libro %}
+                        <a href="{% url 'detalle_libro' obj.item.id %}"
+                           class="text-decoration-none stretched-link text-primary fw-semibold">
+                            {{ obj.item.titulo }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'detalle_material' obj.item.id %}"
+                           class="text-decoration-none stretched-link text-secondary fw-semibold">
+                            {{ obj.item.titulo }}
+                        </a>
+                    {% endif %}
+                </h5>
+
+                {% if obj.es_libro %}
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        Por: {{ obj.item.autor.nombre }} {{ obj.item.autor.apellido }}
+                    </h6>
+                    <p class="card-text small mb-2">
+                        <strong>Categoría:</strong> {{ obj.item.categoria.nombre }}
+                    </p>
+                {% else %}
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {% if obj.item.autor %}
+                            Autor/Entidad: {{ obj.item.autor }}
+                        {% else %}
+                            <span class="fst-italic">Autor desconocido</span>
+                        {% endif %}
+                    </h6>
+                    <p class="card-text small mb-2">
+                        <strong>Tipo:</strong> {{ obj.item.tipo }}<br>
+                        <strong>Código:</strong> {{ obj.item.codigo }}
+                    </p>
+                {% endif %}
+
+                <div class="mt-2">
+                    {% if obj.esta_agotado %}
+                        <span class="badge bg-danger">
+                            <i class="bi bi-x-circle me-1"></i>
+                            Agotado (0 de {{ obj.item.cantidad }})
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {{ obj.cantidad_disponible }} de {{ obj.item.cantidad }} disponible(s)
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# PIE: ACCIONES #}
+            <div class="card-footer bg-light p-3">
+                <div class="d-grid gap-2">
+                {% if obj.esta_agotado %}
+                    {% if obj.ya_reservado_por_mi %}
+                        <button class="btn btn-sm btn-info disabled">
+                            <i class="bi bi-calendar-check me-1"></i> Reservado por ti
+                        </button>
+                    {% else %}
+                        {% if obj.es_libro %}
+                            <a href="{% url 'reservar_libro' obj.item.id %}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-calendar-plus me-1"></i> Reservar libro
+                            </a>
+                        {% else %}
+                            <a href="{% url 'reservar_material' obj.item.id %}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-calendar-plus me-1"></i> Reservar material
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                    {% if obj.reserva_lista_para_mi %}
+                        {% if obj.es_libro %}
+                            <a href="{% url 'prestar_libro' obj.item.id %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-box-arrow-in-down-right me-1"></i> ¡Retirar mi reserva!
+                            </a>
+                        {% else %}
+                            <a href="{% url 'prestar_material' obj.item.id %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-box-arrow-in-down-right me-1"></i> ¡Retirar mi reserva!
+                            </a>
+                        {% endif %}
+                    {% elif obj.reserva_lista_para_otro %}
+                        <button class="btn btn-sm btn-secondary disabled">
+                            <i class="bi bi-person-lock me-1"></i> Reservado por otro
+                        </button>
+                    {% else %}
+                        {% if obj.es_libro %}
+                            <a href="{% url 'prestar_libro' obj.item.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Pedir libro
+                            </a>
+                        {% else %}
+                            <a href="{% url 'prestar_material' obj.item.id %}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Pedir material
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning shadow-sm" role="alert">
+                <i class="bi bi-emoji-frown me-2"></i>
+                No se encontraron ítems en el catálogo
+                {% if search_query %}
+                    para tu búsqueda: <strong>"{{ search_query }}"</strong>.
+                {% elif filtro_seleccionado %}
+                    en la categoría/tipo: <strong>"{{ filtro_seleccionado }}"</strong>.
+                {% else %}
+                    por el momento.
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{# PAGINACIÓN #}
+<nav aria-label="Navegación de páginas" class="mt-4">
+    <ul class="pagination justify-content-center shadow-sm">
+        
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&filtro={{ filtro_seleccionado }}"
+                   aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&laquo;</span>
+            </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ num }}&q={{ search_query }}&filtro={{ filtro_seleccionado }}">
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&filtro={{ filtro_seleccionado }}"
+                   aria-label="Siguiente">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&raquo;</span>
+            </li>
+        {% endif %}
+        
+    </ul>
+</nav>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(function() {
+    $("#barra-busqueda").autocomplete({
+      source: "{% url 'buscar_sugerencias' %}",
+      minLength: 2
+    });
+  });
+</script>
+{% endblock %}

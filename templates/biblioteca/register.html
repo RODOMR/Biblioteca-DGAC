@@ -1,0 +1,486 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - Biblioteca DGAC</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0b2447;
+            --primary-dark: #020617;
+            --accent: #1e88e5;
+            --accent-soft: rgba(30, 136, 229, 0.15);
+            --text-light: #f9fafb;
+            --bg-light: #f3f4f6;
+            --text-gray: #cbd5f5;
+        }
+
+        * {
+            margin:0;
+            padding:0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: url("{% static 'img/inicio/banner_fondo.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Capa oscura sobre el fondo para mejor contraste */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(15,23,42,0.7), rgba(15,23,42,0.95));
+            z-index: -1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .9rem 1.8rem;
+            background: rgba(2, 6, 23, 0.9);
+            color: var(--text-light);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-title h1 {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1.4rem;
+            font-size: 0.95rem;
+        }
+
+        .nav-menu a {
+            color: #cbd5f5;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: 0.25rem 0;
+            position: relative;
+            transition: color 0.3s, transform 0.2s;
+        }
+
+        .nav-menu a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.25s;
+        }
+
+        .nav-menu a:hover {
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .nav-menu a:hover::after {
+            width: 100%;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1.2rem 3rem;
+        }
+
+        /* Tarjeta general (2 columnas en desktop) */
+        .auth-card {
+            width: 100%;
+            max-width: 950px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+            background: rgba(15, 23, 42, 0.95);
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Panel izquierdo: info / hero */
+        .auth-info {
+            padding: 2.5rem 2.2rem;
+            background: radial-gradient(circle at top left, rgba(37,99,235,0.2), transparent 55%);
+            border-right: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        .auth-info h2 {
+            font-size: 2rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .auth-info p {
+            font-size: 0.98rem;
+            color: var(--text-gray);
+            margin-bottom: 1.3rem;
+        }
+
+        .auth-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .auth-badge {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            color: #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .auth-highlight {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 14px;
+            padding: 0.75rem 0.9rem;
+            border: 1px solid rgba(37, 99, 235, 0.45);
+            font-size: 0.9rem;
+            color: #e5e7eb;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+
+        .auth-highlight i {
+            color: var(--accent);
+            margin-top: 0.15rem;
+        }
+
+        /* Panel derecho: formulario */
+        .auth-form-wrapper {
+            padding: 2.3rem 2.1rem 2.1rem;
+            background: linear-gradient(to bottom right, rgba(15,23,42,0.98), rgba(15,23,42,0.92));
+        }
+
+        h1.form-title {
+            text-align: center;
+            margin-bottom: 1.3rem;
+            font-size: 1.6rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+        }
+
+        h1.form-title i {
+            color: var(--accent);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 45px 12px 45px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            font-size: 0.95em;
+            background-color: rgba(15, 23, 42, 0.95);
+            color: var(--text-light);
+            transition: all 0.25s;
+        }
+
+        .form-group input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #020617;
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .form-group i.left-icon {
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .form-group i.toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .password-hint {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            margin-top: -2px;
+            margin-bottom: 4px;
+        }
+
+        button {
+            padding: 13px;
+            background: var(--accent);
+            color: var(--text-light);
+            font-weight: 600;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.25s;
+            margin-top: 6px;
+        }
+
+        button:hover { 
+            background: #2563eb; 
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.55);
+        }
+
+        .links {
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 18px;
+            color: #cbd5f5;
+        }
+
+        .links a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .links a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        /* Mensajes de error */
+        .alert-box {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid #f97373;
+            color: #fecaca;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: rgba(2, 6, 23, 0.98);
+            color: #94a3b8;
+            text-align: center;
+            padding: 1.3rem 0;
+            margin-top: auto;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(31, 41, 55, 0.9);
+        }
+
+        @media (max-width: 860px) {
+            .auth-card {
+                max-width: 520px;
+                grid-template-columns: minmax(0, 1fr);
+            }
+            .auth-info {
+                display: none;
+            }
+        }
+
+        @media(max-width: 500px){
+            header {
+                padding-inline: 1rem;
+            }
+            .logo-title h1 {
+                font-size: 1.2rem;
+            }
+            main {
+                padding-inline: 0.8rem;
+            }
+            .auth-card {
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="{% url 'home' %}" class="logo-title">
+        <i class="fas fa-book-reader fa-2x" style="color: var(--accent);"></i>
+        <h1>Biblioteca DGAC</h1>
+    </a>
+    <nav class="nav-menu">
+        <a href="{% url 'home' %}">
+            <i class="fas fa-home"></i> Inicio
+        </a>
+        <a href="{% url 'catalogo' %}">
+            <i class="fas fa-search"></i> Catálogo
+        </a>
+    </nav>
+</header>
+
+<main>
+    <div class="auth-card">
+
+        <!-- Panel información -->
+        <section class="auth-info">
+            <h2>Únete a la Biblioteca DGAC</h2>
+            <p>
+                Centraliza tus préstamos, revisa tu historial y accede a materiales especializados
+                diseñados para la comunidad DGAC.
+            </p>
+
+            <div class="auth-badges">
+                <div class="auth-badge">
+                    <i class="fa-solid fa-shield-halved"></i> Acceso seguro
+                </div>
+                <div class="auth-badge">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de préstamos
+                </div>
+                <div class="auth-badge">
+                    <i class="fa-solid fa-star"></i> Favoritos y reservas
+                </div>
+            </div>
+
+            <div class="auth-highlight">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    Tu cuenta se vinculará a tu correo institucional. 
+                    Recibirás notificaciones cuando tus reservas estén listas y cuando se acerque la fecha de devolución.
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel formulario -->
+        <section class="auth-form-wrapper">
+            <h1 class="form-title">
+                <i class="fas fa-user-plus"></i>
+                Crear cuenta
+            </h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <input type="text" name="first_name" placeholder="Nombre(s)" required autofocus>
+                    <i class="fas fa-user left-icon"></i>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" name="last_name" placeholder="Apellidos" required>
+                    <i class="fas fa-user-tag left-icon"></i>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Correo electrónico" required>
+                    <i class="fas fa-envelope left-icon"></i>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="Contraseña" id="password" required>
+                    <i class="fas fa-lock left-icon"></i>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+                </div>
+                <div class="password-hint">
+                    Usa al menos 8 caracteres, combinando letras y números.
+                </div>
+
+                <div class="form-group">
+                    <input type="password" name="password2" placeholder="Repetir contraseña" id="password2" required>
+                    <i class="fas fa-lock left-icon"></i>
+                    <i class="fas fa-eye toggle-password" onclick="togglePassword('password2', this)"></i>
+                </div>
+
+                <button type="submit">Registrarse</button>
+            </form>
+
+            <div class="links">
+                ¿Ya tienes cuenta?
+                <a href="{% url 'login' %}">Inicia sesión aquí</a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; {% now "Y" %} Biblioteca DGAC. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+function togglePassword(fieldId, icon) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
+
+</body>
+</html>

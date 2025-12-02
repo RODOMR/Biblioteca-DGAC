@@ -1,0 +1,80 @@
+{% extends "layout/base.html" %}
+
+{% load static %}
+
+{% block title %}
+    Mi Perfil
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="display-4">Mi Perfil</h1>
+            <p class="lead">Aquí puedes seleccionar tu foto de perfil (avatar).</p>
+            <hr>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h5>Avatar Actual</h5>
+                            
+                            <img id="avatar-preview" 
+                                 src="{% static 'img/'|add:user.perfil.avatar %}" 
+                                 alt="Avatar de {{ user.username }}" 
+                                 class="img-thumbnail rounded-circle mb-3" 
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                            
+                            <p class="text-muted small">
+                                {{ user.first_name }} {{ user.last_name }}<br>
+                                {{ user.email }}
+                            </p>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <h5>Seleccionar Nuevo Avatar</h5>
+                            
+                            <form method="POST">
+                                {% csrf_token %}
+                                
+                                {{ form.as_p }}
+                                
+                                <hr>
+                                <button type="submit" class="btn btn-primary">
+                                    Guardar Avatar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Espera a que la página cargue (función de jQuery)
+    $(document).ready(function() {
+        
+        // 1. Selecciona el dropdown (Django le pone el id 'id_avatar')
+        var select = $('#id_avatar');
+        
+        // 2. Selecciona la imagen que queremos cambiar
+        var preview = $('#avatar-preview');
+        
+        // 3. Guarda la ruta base de tus imágenes estáticas
+        var staticBasePath = "{% static 'img/' %}";
+
+        // 4. Escucha el evento "change" (cuando el usuario cambia la opción)
+        select.on('change', function() {
+            // 5. Obtiene el valor de la opción seleccionada
+            //    (ej: 'avatares/capitan.jpg')
+            var nuevaImagen = $(this).val();
+            
+            // 6. Actualiza el atributo 'src' de la imagen de previsualización
+            preview.attr('src', staticBasePath + nuevaImagen);
+        });
+    });
+</script>
+{% endblock %}

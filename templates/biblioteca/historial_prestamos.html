@@ -1,0 +1,374 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-light: #e3f2fd;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+    }
+
+    .history-page {
+        padding-top: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .history-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .history-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .history-title h1 {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .history-title h1 i {
+        font-size: 1.8rem;
+        color: var(--dgac-accent);
+    }
+
+    .history-title p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6c757d;
+    }
+
+    .history-meta {
+        text-align: right;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .history-meta .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        background: rgba(11, 36, 71, 0.06);
+        color: var(--dgac-navy);
+        font-weight: 500;
+    }
+
+    .history-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        background: white;
+    }
+
+    .history-card-header {
+        background: linear-gradient(135deg, var(--dgac-navy), #11468f);
+        color: #f8f9fa;
+        padding: 0.85rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .history-card-header h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .history-card-header span {
+        font-size: 0.8rem;
+        opacity: 0.9;
+    }
+
+    /* Scroll con encabezado fijo */
+    .table-scroll-container {
+        max-height: 520px;
+        overflow-y: auto;
+        background: var(--dgac-soft-bg);
+    }
+
+    .table-sticky-header {
+        margin-bottom: 0;
+    }
+
+    .table-sticky-header thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #0b2447;
+        color: #f8f9fa;
+        border-bottom: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .table-sticky-header tbody tr {
+        transition: background-color 0.15s ease, transform 0.08s ease;
+    }
+
+    .table-sticky-header tbody tr:hover {
+        background-color: rgba(30, 136, 229, 0.06);
+        transform: translateY(-1px);
+    }
+
+    .table-sticky-header td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+
+    /* Columna Ítem (título) */
+    .history-item-title {
+        font-weight: 600;
+        color: var(--dgac-accent);
+    }
+
+    /* Badges de tipo */
+    .badge-type-libro {
+        background: rgba(30, 136, 229, 0.08);
+        color: var(--dgac-navy);
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .badge-type-material {
+        background: rgba(108, 117, 125, 0.1);
+        color: #495057;
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .badge-type-archivo {
+        background: rgba(148, 163, 184, 0.2);
+        color: #475569;
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    /* Estados */
+    .badge-estado {
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .badge-estado-curso {
+        background: rgba(30, 136, 229, 0.1);
+        color: #0b2447;
+    }
+
+    .badge-estado-devuelto {
+        background: rgba(46, 160, 90, 0.12);
+        color: #1b5e20;
+    }
+
+    .badge-estado-atrasado {
+        background: rgba(255, 193, 7, 0.18);
+        color: #795548;
+    }
+
+    .badge-estado-cancelado {
+        background: rgba(220, 53, 69, 0.12);
+        color: #b71c1c;
+    }
+
+    .badge-estado i {
+        margin-right: 0.25rem;
+        font-size: 0.95rem;
+    }
+
+    .estado-subtext {
+        font-size: 0.68rem;
+        margin-top: 0.15rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    /* Mensaje vacío */
+    .history-empty {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .history-empty i {
+        font-size: 2.2rem;
+        margin-bottom: 0.75rem;
+        color: var(--dgac-accent);
+        opacity: 0.4;
+    }
+
+    /* Botón volver */
+    .history-footer {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-outline-dgac {
+        border-radius: 999px;
+        border-color: var(--dgac-navy);
+        color: var(--dgac-navy);
+        font-weight: 500;
+        padding-inline: 1.3rem;
+    }
+
+    .btn-outline-dgac:hover {
+        background: var(--dgac-navy);
+        color: #f8f9fa;
+        border-color: var(--dgac-navy);
+    }
+
+    @media (max-width: 768px) {
+        .history-header {
+            align-items: flex-start;
+        }
+        .history-meta {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="container history-page">
+
+    <div class="history-header">
+        <div class="history-title">
+            <h1>
+                <i class="bi bi-clock-history"></i>
+                Mi Historial
+            </h1>
+            <p>Registro consolidado de tus préstamos, devoluciones y reservas canceladas en la Biblioteca DGAC.</p>
+        </div>
+
+        <div class="history-meta">
+            <div class="pill">
+                <i class="bi bi-shield-check"></i>
+                <span>Información sólo visible para ti</span>
+            </div>
+            <div>Última actualización: <strong>{{ now|date:"d/m/Y H:i" }}</strong></div>
+        </div>
+    </div>
+
+    <div class="card history-card">
+        <div class="history-card-header">
+            <h2>Movimiento histórico</h2>
+            <span>Desplázate para ver registros anteriores</span>
+        </div>
+
+        <div class="table-scroll-container">
+            <table class="table table-hover align-middle table-sticky-header">
+                <thead>
+                    <tr>
+                        <th>Ítem</th>
+                        <th>Tipo</th>
+                        <th>Fecha inicio</th>
+                        <th>Fecha fin / límite</th>
+                        <th class="text-center">Estado final</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in historial %}
+                    <tr>
+                        <td class="history-item-title">
+                            {{ h.titulo }}
+                        </td>
+
+                        <td>
+                            {% if h.tipo_lbl == 'Libro' %}
+                                <span class="badge-type-libro">
+                                    <i class="bi bi-book"></i> Libro
+                                </span>
+                            {% elif h.tipo_lbl == 'Material' %}
+                                <span class="badge-type-material">
+                                    <i class="bi bi-box-seam"></i> Material
+                                </span>
+                            {% else %}
+                                <span class="badge-type-archivo">
+                                    <i class="bi bi-archive"></i> Archivo
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ h.fecha_evento|date:"d/m/Y" }}
+                        </td>
+
+                        <td>
+                            {{ h.fecha_fin|date:"d/m/Y" }}
+                        </td>
+
+                        <td class="text-center">
+                            {% if h.estado == 'activo' %}
+                                <span class="badge-estado badge-estado-curso">
+                                    <i class="bi bi-arrow-repeat"></i> En curso
+                                </span>
+
+                            {% elif h.estado == 'devuelto' %}
+                                <span class="badge-estado badge-estado-devuelto">
+                                    <i class="bi bi-check-all"></i> Devuelto
+                                </span>
+
+                            {% elif h.estado == 'atrasado' %}
+                                <span class="badge-estado badge-estado-atrasado">
+                                    <i class="bi bi-exclamation-triangle"></i> Atrasado
+                                </span>
+
+                            {% elif h.estado == 'cancelado' or h.estado == 'cancelado_antiguo' %}
+                                <span class="badge-estado badge-estado-cancelado">
+                                    <i class="bi bi-x-circle"></i> Cancelado
+                                </span>
+                                <div class="estado-subtext text-danger">No retirado</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="history-empty">
+                                <i class="bi bi-journal-x"></i>
+                                <h5 class="mb-1">Tu historial está vacío</h5>
+                                <p class="mb-0">Cuando realices préstamos o reservas, verás aquí el detalle de todos tus movimientos.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="history-footer">
+        <a href="{% url 'catalogo' %}" class="btn btn-outline-dgac">
+            <i class="bi bi-arrow-left-circle"></i> Volver al catálogo
+        </a>
+    </div>
+
+</div>
+{% endblock %}

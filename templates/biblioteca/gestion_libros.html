@@ -1,0 +1,479 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+    }
+
+    .books-page {
+        padding-top: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .books-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .books-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .books-title h1 {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .books-title h1 i {
+        font-size: 1.8rem;
+        color: var(--dgac-accent);
+    }
+
+    .books-title p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6c757d;
+    }
+
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(11, 36, 71, 0.04);
+        color: var(--dgac-navy);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    .filter-pill span {
+        background: white;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .books-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Buscador */
+    .books-search-form {
+        max-width: 420px;
+    }
+
+    .books-search-form .form-control {
+        border-radius: 999px 0 0 999px;
+        border-right: none;
+    }
+
+    .books-search-form .btn-search {
+        border-radius: 0;
+        border-right: none;
+    }
+
+    .books-search-form .btn-clear {
+        border-radius: 0 999px 999px 0;
+    }
+
+    /* Tabs Activos / Papelera */
+    .books-tabs .btn {
+        border-radius: 999px;
+        font-size: 0.85rem;
+        padding-inline: 0.9rem;
+    }
+
+    .books-tabs .btn-active {
+        background: linear-gradient(135deg, var(--dgac-navy), var(--dgac-mid));
+        color: #f8f9fa;
+        border-color: transparent;
+    }
+
+    .books-tabs .btn-inactive {
+        border-color: rgba(11, 36, 71, 0.3);
+        color: var(--dgac-navy);
+        background: white;
+    }
+
+    .btn-new-book {
+        border-radius: 999px;
+        font-weight: 500;
+        background: var(--dgac-accent);
+        border-color: var(--dgac-accent);
+    }
+
+    .btn-new-book i {
+        margin-right: 0.25rem;
+    }
+
+    .btn-new-book:hover {
+        background: #1565c0;
+        border-color: #1565c0;
+    }
+
+    /* Tarjeta / tabla */
+    .card-books {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .card-books .table-responsive {
+        background: var(--dgac-soft-bg);
+    }
+
+    .card-books thead {
+        background: var(--dgac-navy);
+        color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+    }
+
+    .card-books thead th {
+        border: none;
+    }
+
+    .card-books tbody tr {
+        transition: background-color 0.12s ease, transform 0.05s ease;
+    }
+
+    .card-books tbody tr:hover {
+        background-color: rgba(30, 136, 229, 0.06);
+        transform: translateY(-1px);
+    }
+
+    /* Filas archivadas */
+    .fila-archivada {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .fila-archivada td {
+        border-top-color: #e9ecef !important;
+    }
+
+    /* Título / autor truncados */
+    .books-title-cell {
+        max-width: 260px;
+    }
+
+    .books-title-cell span {
+        font-weight: 600;
+        color: var(--dgac-accent);
+    }
+
+    .books-author-cell {
+        max-width: 200px;
+    }
+
+    /* Stock */
+    .badge-stock {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Estado */
+    .badge-estado-activo {
+        background: rgba(46, 160, 90, 0.12);
+        color: #1b5e20;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    .badge-estado-archivado {
+        background: rgba(255, 193, 7, 0.18);
+        color: #795548;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    /* Acciones */
+    .btn-sm-icon {
+        border-radius: 999px;
+        padding-inline: 0.6rem;
+    }
+
+    /* Mensaje vacío */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 2.2rem;
+        margin-bottom: 0.75rem;
+        color: var(--dgac-accent);
+        opacity: 0.4;
+    }
+
+    /* Paginación */
+    .card-books .card-footer {
+        border-top: 1px solid #e9ecef;
+    }
+
+    .pagination .page-link {
+        border-radius: 999px !important;
+    }
+
+    @media (max-width: 768px) {
+        .books-header {
+            row-gap: 1rem;
+        }
+        .books-title h1 {
+            font-size: 1.6rem;
+        }
+
+        /* Ocultar columnas menos críticas en móvil si quieres */
+        .col-isbn,
+        .col-estado {
+            display: none;
+        }
+    }
+</style>
+
+<div class="books-page">
+
+    <div class="row books-header align-items-center">
+        <div class="col-md-6">
+            <div class="books-title">
+                <h1 class="display-6 mb-1">
+                    <i class="bi bi-journal-bookmark"></i> Gestionar Libros
+                    {% if estado_actual == 'archivados' %}
+                        <span class="badge bg-warning text-dark fs-6 align-middle ms-1">Papelera</span>
+                    {% endif %}
+                </h1>
+                <p>Administra el inventario de títulos, su estado y stock disponible.</p>
+
+                {% if search_query %}
+                    <div class="filter-pill">
+                        <i class="bi bi-funnel"></i>
+                        <span>{{ search_query }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-6 mt-3 mt-md-0">
+            <div class="books-actions">
+                <!-- BUSCADOR -->
+                <form method="GET" class="d-flex flex-grow-1 books-search-form">
+                    <input type="hidden" name="estado" value="{{ estado_actual }}">
+                    <input type="text"
+                           class="form-control"
+                           name="q"
+                           id="input-busqueda"
+                           placeholder="Buscar por título, autor o ISBN..."
+                           value="{{ search_query }}">
+
+                    <button class="btn btn-outline-secondary btn-search" type="submit" title="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+                    {% if search_query %}
+                        <a href="?estado={{ estado_actual }}"
+                           class="btn btn-outline-secondary btn-clear"
+                           title="Limpiar búsqueda">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    {% endif %}
+                </form>
+
+                <!-- TABS ESTADO -->
+                <div class="btn-group books-tabs" role="group">
+                    <a href="?estado=activos{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="btn {% if estado_actual == 'activos' %}btn-active{% else %}btn-inactive{% endif %}">
+                        <i class="bi bi-check2-circle"></i> Activos
+                    </a>
+                    <a href="?estado=archivados{% if search_query %}&q={{ search_query }}{% endif %}"
+                       class="btn {% if estado_actual == 'archivados' %}btn-active{% else %}btn-inactive{% endif %}">
+                        <i class="bi bi-archive"></i> Papelera
+                    </a>
+                </div>
+
+                <!-- NUEVO LIBRO -->
+                <a href="{% url 'crear_libro' %}" class="btn btn-success text-nowrap btn-new-book">
+                    <i class="bi bi-plus-lg"></i> Nuevo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-books shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle tabla-gestion-libros">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th class="col-isbn">ISBN</th>
+                        <th class="text-center">Stock</th>
+                        <th class="col-estado">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in page_obj %}
+                    <tr class="{% if not l.activo %}fila-archivada{% endif %}">
+                        <td class="books-title-cell text-truncate">
+                            <span>{{ l.titulo }}</span>
+                        </td>
+                        <td class="books-author-cell text-truncate">
+                            {{ l.autor }}
+                        </td>
+                        <td class="small text-muted col-isbn">
+                            {{ l.isbn }}
+                        </td>
+                        <td class="text-center">
+                            {% if l.cantidad > 0 %}
+                                <span class="badge badge-stock bg-secondary">
+                                    <i class="bi bi-box-seam"></i> {{ l.cantidad }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-stock bg-danger">
+                                    <i class="bi bi-exclamation-circle"></i> 0
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="col-estado">
+                            {% if l.activo %}
+                                <span class="badge-estado-activo">
+                                    <i class="bi bi-check-circle"></i> Activo
+                                </span>
+                            {% else %}
+                                <span class="badge-estado-archivado">
+                                    <i class="bi bi-archive-fill"></i> Archivado
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <!-- EDITAR -->
+                                <a href="{% url 'editar_libro' l.id %}"
+                                   class="btn btn-sm btn-outline-primary btn-sm-icon"
+                                   title="Editar libro">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                {% if l.activo %}
+                                    <!-- ARCHIVAR (mantengo tu GET) -->
+                                    <a href="{% url 'eliminar_libro' l.id %}"
+                                       class="btn btn-sm btn-outline-warning btn-sm-icon"
+                                       title="Archivar libro"
+                                       onclick="return confirm('¿Archivar este libro? Se moverá a la papelera.');">
+                                        <i class="bi bi-archive-fill"></i>
+                                    </a>
+                                {% else %}
+                                    <!-- REACTIVAR -->
+                                    <form action="{% url 'reactivar_libro' l.id %}"
+                                          method="POST"
+                                          class="d-inline"
+                                          onsubmit="return confirm('¿Reactivar este libro en el catálogo?');">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-outline-success btn-sm-icon" title="Reactivar">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-search"></i>
+                                <h5 class="mb-1">No se encontraron libros</h5>
+                                <p class="mb-0">Ajusta los filtros o crea un nuevo título en el catálogo.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-light">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.previous_page_number }}&estado={{ estado_actual }}&q={{ search_query }}">
+                               &laquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ i }}</span>
+                            </li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ i }}&estado={{ estado_actual }}&q={{ search_query }}">
+                                   {{ i }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.next_page_number }}&estado={{ estado_actual }}&q={{ search_query }}">
+                               &raquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(function() {
+        $("#input-busqueda").autocomplete({
+            source: "{% url 'buscar_sugerencias' %}",
+            minLength: 2
+        });
+    });
+</script>
+{% endblock %}

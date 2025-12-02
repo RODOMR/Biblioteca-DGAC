@@ -1,0 +1,32 @@
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Crear Nuevo Autor
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="display-4">Crear Nuevo Autor</h1>
+            <p class="lead">Completa el formulario para añadir un nuevo autor al sistema.</p>
+            <hr>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                {{ form.as_p }}
+                
+                <hr>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'gestion_autores' %}" class="btn btn-secondary me-md-2">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        Guardar Autor
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+{% endblock %}

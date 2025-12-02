@@ -1,0 +1,259 @@
+{% extends "layout/base.html" %}
+{% load permisos %}
+
+{% block content %}
+
+<style>
+    .panel-section-title {
+        font-size: .9rem;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        color: #6b7280;
+        font-weight: 600;
+    }
+    .card-quick {
+        border-radius: 1rem;
+        transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .card-quick:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(15,23,42,.12);
+    }
+    .kpi-chip {
+        font-size: .8rem;
+        border-radius: 999px;
+        padding: .15rem .7rem;
+        background: #e5f6ff;
+        color: #0369a1;
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+    }
+</style>
+
+<div class="row mb-4 align-items-center">
+    <div class="col-lg-8">
+        <h1 class="display-5 fw-bold text-primary mb-1">
+            <i class="bi bi-grid-fill"></i> Panel de Gestión
+        </h1>
+        <p class="text-muted mb-0">
+            Administración del catálogo, usuarios y procesos de circulación.
+        </p>
+    </div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        {% if ultima_ejecucion %}
+            <span class="kpi-chip">
+                <i class="bi bi-clock-history"></i>
+                Última tarea diaria: {{ ultima_ejecucion|date:"d/m/Y" }}
+            </span>
+        {% else %}
+            <span class="kpi-chip bg-warning-subtle text-warning-emphasis">
+                <i class="bi bi-exclamation-triangle"></i>
+                Tareas diarias nunca ejecutadas
+            </span>
+        {% endif %}
+    </div>
+</div>
+
+{# ALERTA DE ESTADO DEL ROBOT #}
+{% if tareas_pendientes %}
+    <div class="alert alert-danger shadow border-danger mb-5 d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-octagon-fill display-5 me-3"></i>
+        <div class="flex-grow-1">
+            <h4 class="alert-heading fw-bold mb-1">¡ATENCIÓN REQUERIDA!</h4>
+            <p class="mb-0">
+                Los procesos automáticos (limpieza de reservas y alertas de vencimiento)
+                <strong>no se han ejecutado hoy</strong>.
+                {% if ultima_ejecucion %}
+                    <br><small class="text-muted">Última ejecución registrada: {{ ultima_ejecucion|date:"d/m/Y" }}</small>
+                {% else %}
+                    <br><small class="text-muted">Nunca se han ejecutado.</small>
+                {% endif %}
+            </p>
+        </div>
+        <div class="text-end d-none d-md-block ms-3">
+            <span class="fw-bold text-danger">Ejecutar más abajo</span>
+            <i class="bi bi-arrow-down-circle-fill fs-2 ms-1 align-middle"></i>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-success py-2 mb-5 text-center border-0 bg-opacity-25 bg-success">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        El sistema está al día. Tareas diarias ejecutadas.
+    </div>
+{% endif %}
+
+{# SECCIÓN CIRCULACIÓN #}
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <span class="panel-section-title">Circulación y atención</span>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card card-quick h-100 border-success-subtle">
+            <div class="card-body text-center">
+                <div class="mb-3 text-success">
+                    <i class="bi bi-qr-code-scan display-4"></i>
+                </div>
+                <h4 class="card-title fw-bold">Procesar Retiro</h4>
+                <p class="card-text text-muted mb-3">
+                    Ingresar código de reserva (6 caracteres) para entregar libro o material al usuario.
+                </p>
+                <a href="{% url 'procesar_retiro' %}"
+                   class="btn btn-success w-100 stretched-link shadow-sm">
+                    <i class="bi bi-play-fill"></i> Ir a validar retiro
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card card-quick h-100 border-warning-subtle">
+            <div class="card-body text-center">
+                <div class="mb-3 text-warning">
+                    <i class="bi bi-robot display-4"></i>
+                </div>
+                <h4 class="card-title fw-bold">Robot de Tareas Diarias</h4>
+                <p class="card-text text-muted mb-3">
+                    Limpia reservas vencidas, envía alertas de devolución y prepara la cobranza de libros atrasados.
+                </p>
+                <form action="{% url 'ejecutar_tareas_diarias' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-warning w-100 text-dark fw-bold shadow-sm">
+                        <i class="bi bi-lightning-charge-fill"></i> Ejecutar ahora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# SECCIÓN INVENTARIO #}
+<div class="row mb-5">
+    <div class="col-12 mb-3">
+        <span class="panel-section-title">Inventario y catálogo</span>
+    </div>
+
+    <div class="col-sm-6 col-md-3 mb-3">
+        <div class="card card-quick h-100">
+            <div class="card-body text-center">
+                <div class="mb-2 text-primary">
+                    <i class="bi bi-book-half fs-2"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Libros</h5>
+                <p class="small text-muted mb-3">Altas, bajas y edición de títulos físicos.</p>
+                <a href="{% url 'gestion_libros' %}" class="btn btn-outline-primary w-100">
+                    Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-md-3 mb-3">
+        <div class="card card-quick h-100">
+            <div class="card-body text-center">
+                <div class="mb-2 text-info">
+                    <i class="bi bi-boxes fs-2"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Materiales</h5>
+                <p class="small text-muted mb-3">Manuales, revistas, mapas y otros ítems.</p>
+                <a href="{% url 'gestion_materiales' %}" class="btn btn-outline-info w-100">
+                    Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3 mb-3">
+        <div class="card card-quick h-100">
+            <div class="card-body text-center">
+                <div class="mb-2 text-secondary">
+                    <i class="bi bi-person-lines-fill fs-2"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Autores</h5>
+                <p class="small text-muted mb-3">Listado y mantenimiento de autores.</p>
+                <a href="{% url 'gestion_autores' %}" class="btn btn-outline-secondary w-100">
+                    Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3 mb-3">
+        <div class="card card-quick h-100">
+            <div class="card-body text-center">
+                <div class="mb-2 text-secondary">
+                    <i class="bi bi-tags-fill fs-2"></i>
+                </div>
+                <h5 class="fw-bold mb-1">Categorías</h5>
+                <p class="small text-muted mb-3">Organización por áreas temáticas.</p>
+                <a href="{% url 'gestion_categorias' %}" class="btn btn-outline-secondary w-100">
+                    Gestionar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# SECCIÓN ADMIN #}
+{% if es_admin %}
+<div class="row mb-4">
+    <div class="col-12 mb-3">
+        <span class="panel-section-title text-danger">Zona administrativa</span>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-warning-subtle shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-people-fill fs-1 text-warning me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Usuarios</h5>
+                        <small class="text-muted">Roles y accesos del sistema.</small>
+                    </div>
+                </div>
+                <a href="{% url 'gestion_usuarios' %}" class="btn btn-warning w-100">
+                    Administrar usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-info-subtle shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-graph-up fs-1 text-info me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Reportes</h5>
+                        <small class="text-muted">Estadísticas y exportación a Excel.</small>
+                    </div>
+                </div>
+                <a href="{% url 'reportes' %}" class="btn btn-info text-white w-100">
+                    Ver dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 border-secondary-subtle shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-shield-lock fs-1 text-secondary me-3"></i>
+                    <div>
+                        <h5 class="card-title mb-0">Auditoría</h5>
+                        <small class="text-muted">Logs, seguridad y trazabilidad.</small>
+                    </div>
+                </div>
+                <a href="{% url 'gestion_historial' %}" class="btn btn-secondary w-100">
+                    Ver registros
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

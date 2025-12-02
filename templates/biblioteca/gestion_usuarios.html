@@ -1,0 +1,449 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% load permisos %}
+
+{% block title %}
+    Gestión de Usuarios
+{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+    }
+
+    .users-page {
+        padding-top: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .users-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .users-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .users-title h1 {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .users-title h1 i {
+        font-size: 1.8rem;
+        color: var(--dgac-accent);
+    }
+
+    .users-title p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6c757d;
+    }
+
+    .btn-back-gestion {
+        border-radius: 999px;
+    }
+
+    .users-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .users-card-header {
+        background: linear-gradient(135deg, var(--dgac-navy), var(--dgac-mid));
+        color: #f8f9fa;
+        padding: 0.9rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .users-card-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .users-card-header-left i {
+        font-size: 1.2rem;
+    }
+
+    .users-card-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .users-counter-pill {
+        border-radius: 999px;
+        background: rgba(248, 249, 250, 0.15);
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .users-page-pill {
+        border-radius: 999px;
+        background: rgba(248, 249, 250, 0.12);
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Buscador */
+    .users-search-form {
+        max-width: 260px;
+    }
+
+    .users-search-form .form-control {
+        border-radius: 999px 0 0 999px;
+        border-right: none;
+        font-size: 0.85rem;
+    }
+
+    .users-search-form .btn-search {
+        border-radius: 0 999px 999px 0;
+        font-size: 0.85rem;
+    }
+
+    .users-search-form .btn-search i {
+        font-size: 0.95rem;
+    }
+
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(11, 36, 71, 0.04);
+        color: var(--dgac-navy);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    .filter-pill span {
+        background: white;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .users-card .table-responsive {
+        background: var(--dgac-soft-bg);
+    }
+
+    .users-card thead {
+        background: var(--dgac-navy);
+        color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+    }
+
+    .users-card thead th {
+        border: none;
+        white-space: nowrap;
+    }
+
+    .users-card tbody tr {
+        transition: background-color 0.12s ease, transform 0.05s ease;
+    }
+
+    .users-card tbody tr:hover {
+        background-color: rgba(30, 136, 229, 0.06);
+        transform: translateY(-1px);
+    }
+
+    .users-card tbody td {
+        font-size: 0.9rem;
+    }
+
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+    }
+
+    .badge-rol {
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.7rem;
+    }
+
+    .badge-estado {
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.7rem;
+    }
+
+    .users-role-select {
+        max-width: 260px;
+    }
+
+    .btn-sm-icon {
+        border-radius: 999px;
+        padding-inline: 0.6rem;
+    }
+
+    /* Mensaje vacío */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 2.2rem;
+        margin-bottom: 0.75rem;
+        color: var(--dgac-accent);
+        opacity: 0.4;
+    }
+
+    /* Paginación */
+    .users-card .card-footer {
+        border-top: 1px solid #e9ecef;
+    }
+
+    .pagination .page-link {
+        border-radius: 999px !important;
+    }
+
+    @media (max-width: 768px) {
+        .users-title h1 {
+            font-size: 1.6rem;
+        }
+        .users-card-header {
+            align-items: flex-start;
+        }
+        .users-card-header-right {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="users-page">
+
+    <div class="row users-header align-items-center">
+        <div class="col-md-8">
+            <div class="users-title">
+                <h1>
+                    <i class="bi bi-people-fill"></i>
+                    Gestión de Usuarios
+                </h1>
+                <p>Panel exclusivo para Administradores. Aquí puedes revisar usuarios y gestionar sus roles y estados.</p>
+
+                {% if request.GET.q %}
+                    <div class="filter-pill">
+                        <i class="bi bi-funnel"></i>
+                        <span>{{ request.GET.q }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 d-flex align-items-center justify-content-md-end justify-content-start mt-3 mt-md-0">
+            <a href="{% url 'gestion' %}" class="btn btn-outline-secondary btn-back-gestion">
+                <i class="bi bi-arrow-left"></i> Volver a Gestión
+            </a>
+        </div>
+    </div>
+
+    <div class="card users-card shadow-sm">
+        <div class="card-header users-card-header">
+            <div class="users-card-header-left">
+                <i class="bi bi-people"></i>
+                <span>Listado de Usuarios</span>
+            </div>
+            <div class="users-card-header-right">
+                <span class="users-counter-pill">
+                    Total: <strong>{{ page_obj.paginator.count }}</strong>
+                </span>
+                <span class="users-page-pill">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+
+                <!-- BUSCADOR -->
+                <form method="GET" class="users-search-form d-flex">
+                    <input type="text"
+                           class="form-control"
+                           name="q"
+                           placeholder="Buscar por usuario, nombre o email..."
+                           value="{{ request.GET.q }}">
+                    <button class="btn btn-light btn-search" type="submit" title="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center" style="width: 80px;">Avatar</th>
+                            <th scope="col">Usuario (Email)</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Rol actual</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col" style="width: 25%;">Cambiar rol a</th>
+                            <th scope="col" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in usuarios_con_roles %}
+                            <tr class="{% if not item.user.is_active %}table-secondary text-muted{% endif %}">
+                                <td class="text-center">
+                                    <img src="{% static 'img/'|add:item.user.perfil.avatar %}" 
+                                         alt="Avatar" class="user-avatar">
+                                </td>
+                                <td class="fw-bold">{{ item.user.username }}</td>
+                                <td>{{ item.user.first_name }} {{ item.user.last_name }}</td>
+                                <td>
+                                    {% if item.rol_actual %}
+                                        <span class="badge badge-rol
+                                            {% if item.rol_actual.name == 'Administrador' %}
+                                                bg-danger
+                                            {% elif item.rol_actual.name == 'Cargador' %}
+                                                bg-warning text-dark
+                                            {% else %}
+                                                bg-info text-dark
+                                            {% endif %}
+                                        ">
+                                            {{ item.rol_actual.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-rol bg-secondary">Sin rol</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.user.is_active %}
+                                        <span class="badge badge-estado bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-estado bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{% url 'admin_cambiar_rol' item.user.id %}"
+                                          method="POST"
+                                          class="d-flex users-role-select">
+                                        {% csrf_token %}
+                                        <select name="rol"
+                                                class="form-select form-select-sm me-2"
+                                                {% if not item.user.is_active %}disabled{% endif %}>
+                                            {% for rol in roles_disponibles %}
+                                                <option value="{{ rol.id }}" {% if item.rol_actual == rol %}selected{% endif %}>
+                                                    {{ rol.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit"
+                                                class="btn btn-sm btn-primary btn-sm-icon"
+                                                {% if not item.user.is_active %}disabled{% endif %}>
+                                            Guardar
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    {% if item.user.is_active %}
+                                        <form action="{% url 'admin_desactivar_usuario' item.user.id %}" method="POST" 
+                                              onsubmit="return confirm('¿Estás SEGURO de DESACTIVAR a {{ item.user.username|escapejs }}? El usuario no podrá iniciar sesión.');">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-warning btn-sm-icon"
+                                                    title="Desactivar usuario">
+                                                <i class="bi bi-person-fill-slash"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form action="{% url 'admin_reactivar_usuario' item.user.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success btn-sm-icon"
+                                                    title="Reactivar usuario">
+                                                <i class="bi bi-person-fill-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="bi bi-person-x"></i>
+                                        <h5 class="mb-1">No se encontraron usuarios</h5>
+                                        <p class="mb-0">Cuando se creen cuentas nuevas, aparecerán aquí para su gestión.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-light">
+            <nav aria-label="Navegación de usuarios">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                               &laquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                                   {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                               &raquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

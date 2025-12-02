@@ -1,0 +1,84 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white py-3">
+                <h4 class="mb-0"><i class="bi bi-qr-code-scan"></i> Gestión de Retiros</h4>
+            </div>
+            <div class="card-body p-4">
+                
+                <form method="POST" class="mb-4">
+                    {% csrf_token %}
+                    <label class="form-label fw-bold">Código de Retiro del Usuario</label>
+                    <div class="input-group input-group-lg">
+                        <input type="text" name="codigo" class="form-control text-uppercase fw-bold text-center" 
+                               placeholder="EJ: X9Z1A2" maxlength="6" required autofocus>
+                        <button type="submit" name="buscar_codigo" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Validar
+                        </button>
+                    </div>
+                    <div class="form-text text-center mt-2">Solicita al usuario su código de reserva de 6 caracteres.</div>
+                </form>
+
+                <hr>
+
+                {% if reserva %}
+                    <div class="alert alert-success border-success bg-opacity-10 fade show">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="display-4 text-success me-3">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-0">¡Reserva Encontrada!</h5>
+                                <p class="mb-0 text-muted">El código <strong>{{ reserva.codigo_retiro }}</strong> es válido.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white border shadow-sm">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <small class="text-muted d-block">Usuario Solicitante</small>
+                                    <span class="fw-bold text-dark">{{ reserva.usuario.first_name }} {{ reserva.usuario.last_name }}</span>
+                                    <span class="text-muted small">({{ reserva.usuario.username }})</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <small class="text-muted d-block">Ítem a Entregar</small>
+                                    <span class="fs-5 fw-bold text-primary">
+                                        {% if reserva.libro %}
+                                            <i class="bi bi-book-fill"></i> {{ reserva.libro.titulo }}
+                                        {% else %}
+                                            <i class="bi bi-box-seam-fill"></i> {{ reserva.material.titulo }}
+                                        {% endif %}
+                                    </span>
+                                    <span class="badge bg-light text-dark border ms-2">
+                                        {% if reserva.libro %}Libro{% else %}Material{% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item">
+                                    <small class="text-muted d-block">Fecha Límite de Retiro</small>
+                                    <span class="text-danger fw-bold">
+                                        {{ reserva.fecha_limite_retiro|date:"d \d\e F, Y" }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <form method="POST" class="mt-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="reserva_id" value="{{ reserva.id }}">
+                            <div class="d-grid">
+                                <button type="submit" name="confirmar_entrega" class="btn btn-success btn-lg shadow">
+                                    <i class="bi bi-hand-thumbs-up-fill me-2"></i> Confirmar Entrega y Crear Préstamo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

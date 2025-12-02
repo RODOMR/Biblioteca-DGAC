@@ -1,0 +1,35 @@
+{% extends "layout/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="mb-4">
+        <a href="{% url 'lista_noticias' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a Noticias
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 overflow-hidden">
+                
+                {% if noticia.imagen %}
+                    <img src="{{ noticia.imagen.url }}" class="w-100" style="max-height: 500px; object-fit: cover;" alt="{{ noticia.titulo }}">
+                {% endif %}
+
+                <div class="card-body p-5">
+                    <h1 class="display-5 fw-bold text-dark mb-3">{{ noticia.titulo }}</h1>
+                    
+                    <div class="text-muted mb-4 pb-3 border-bottom d-flex align-items-center">
+                        <span class="me-3"><i class="bi bi-calendar3"></i> {{ noticia.fecha|date:"d \d\e F, Y" }}</span>
+                        <span><i class="bi bi-person-circle"></i> Por {{ noticia.autor.first_name|default:"Administración" }}</span>
+                    </div>
+
+                    <div class="card-text fs-5" style="line-height: 1.8; color: #333;">
+                        {{ noticia.contenido|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,484 @@
+{% extends "layout/base.html" %}
+{% block content %}
+
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+    }
+
+    .materials-page {
+        padding-top: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .materials-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .materials-title {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .materials-title h1 {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .materials-title h1 i {
+        font-size: 1.8rem;
+        color: var(--dgac-accent);
+    }
+
+    .materials-title p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6c757d;
+    }
+
+    .materials-title .badge-estado {
+        font-size: 0.8rem;
+        border-radius: 999px;
+        padding-inline: 0.75rem;
+    }
+
+    .filter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(11, 36, 71, 0.04);
+        color: var(--dgac-navy);
+        font-size: 0.8rem;
+        margin-top: 0.3rem;
+    }
+
+    .filter-pill span {
+        background: white;
+        border-radius: 999px;
+        padding: 0.1rem 0.5rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .materials-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Buscador */
+    .materials-search-form {
+        max-width: 420px;
+    }
+
+    .materials-search-form .form-control {
+        border-radius: 999px 0 0 999px;
+        border-right: none;
+    }
+
+    .materials-search-form .btn-search {
+        border-radius: 0;
+        border-right: none;
+    }
+
+    .materials-search-form .btn-clear {
+        border-radius: 0 999px 999px 0;
+    }
+
+    /* Tabs Activos / Archivados */
+    .materials-tabs .btn {
+        border-radius: 999px;
+        font-size: 0.85rem;
+        padding-inline: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .materials-tabs .btn-active {
+        background: linear-gradient(135deg, var(--dgac-navy), var(--dgac-mid));
+        color: #f8f9fa;
+        border-color: transparent;
+    }
+
+    .materials-tabs .btn-inactive {
+        border-color: rgba(11, 36, 71, 0.3);
+        color: var(--dgac-navy);
+        background: white;
+    }
+
+    .btn-new-material {
+        border-radius: 999px;
+        font-weight: 500;
+        background: var(--dgac-accent);
+        border-color: var(--dgac-accent);
+        white-space: nowrap;
+    }
+
+    .btn-new-material i {
+        margin-right: 0.25rem;
+    }
+
+    .btn-new-material:hover {
+        background: #1565c0;
+        border-color: #1565c0;
+    }
+
+    /* Card / tabla */
+    .card-materials {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .card-materials .table-responsive {
+        background: var(--dgac-soft-bg);
+    }
+
+    .card-materials thead {
+        background: var(--dgac-navy);
+        color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.76rem;
+        letter-spacing: 0.06em;
+    }
+
+    .card-materials thead th {
+        border: none;
+        white-space: nowrap;
+    }
+
+    .card-materials tbody tr {
+        transition: background-color 0.12s ease, transform 0.05s ease;
+    }
+
+    .card-materials tbody tr:hover {
+        background-color: rgba(30, 136, 229, 0.06);
+        transform: translateY(-1px);
+    }
+
+    /* Fila archivada (material inactivo) */
+    .fila-archivada {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .fila-archivada td {
+        border-top-color: #e9ecef !important;
+    }
+
+    /* Título */
+    .materials-title-cell {
+        max-width: 260px;
+    }
+
+    .materials-title-cell span {
+        font-weight: 600;
+        color: var(--dgac-accent);
+    }
+
+    /* Stock */
+    .badge-stock {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    /* Tipo */
+    .badge-tipo {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        background: rgba(25, 118, 210, 0.12);
+        color: var(--dgac-navy);
+    }
+
+    /* Estado */
+    .badge-estado-activo {
+        background: rgba(46, 160, 90, 0.12);
+        color: #1b5e20;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    .badge-estado-archivado {
+        background: rgba(255, 193, 7, 0.18);
+        color: #795548;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    /* Acciones */
+    .btn-sm-icon {
+        border-radius: 999px;
+        padding-inline: 0.6rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 2.2rem;
+        margin-bottom: 0.75rem;
+        color: var(--dgac-accent);
+        opacity: 0.4;
+    }
+
+    /* Paginación */
+    .card-materials .card-footer {
+        border-top: 1px solid #e9ecef;
+    }
+
+    .pagination .page-link {
+        border-radius: 999px !important;
+    }
+
+    @media (max-width: 768px) {
+        .materials-title h1 {
+            font-size: 1.6rem;
+        }
+        .materials-header {
+            row-gap: 1rem;
+        }
+    }
+</style>
+
+<div class="materials-page">
+
+    <div class="row materials-header align-items-center">
+        <div class="col-md-4">
+            <div class="materials-title">
+                <h1 class="display-6">
+                    <i class="bi bi-boxes"></i>
+                    Gestionar Materiales
+                    {% if estado_actual == 'archivados' %}
+                        <span class="badge bg-warning text-dark badge-estado ms-1">Archivados</span>
+                    {% endif %}
+                </h1>
+                <p>Administra materiales especiales, su tipo, código y stock disponible en la Biblioteca DGAC.</p>
+
+                {% if search_query %}
+                    <div class="filter-pill">
+                        <i class="bi bi-funnel"></i>
+                        <span>{{ search_query }}</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-8 mt-3 mt-md-0">
+            <div class="materials-actions">
+                <!-- BUSCADOR -->
+                <form method="GET" class="d-flex flex-grow-1 materials-search-form">
+                    <input type="hidden" name="estado" value="{{ estado_actual }}">
+                    
+                    <input type="text"
+                           class="form-control"
+                           name="q"
+                           id="input-busqueda" 
+                           placeholder="Título, autor, código o tipo..."
+                           value="{{ search_query }}">
+
+                    <button class="btn btn-outline-secondary btn-search" type="submit" title="Buscar">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+                    {% if search_query %}
+                        <a href="?estado={{ estado_actual }}"
+                           class="btn btn-outline-secondary btn-clear"
+                           title="Limpiar búsqueda">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    {% endif %}
+                </form>
+
+                <!-- TABS ESTADO -->
+                <div class="btn-group materials-tabs" role="group">
+                    <a href="?estado=activos{% if search_query %}&q={{ search_query }}{% endif %}" 
+                       class="btn {% if estado_actual == 'activos' %}btn-active{% else %}btn-inactive{% endif %}">
+                        <i class="bi bi-check2-circle"></i> Activos
+                    </a>
+                    <a href="?estado=archivados{% if search_query %}&q={{ search_query }}{% endif %}" 
+                       class="btn {% if estado_actual == 'archivados' %}btn-active{% else %}btn-inactive{% endif %}">
+                       <i class="bi bi-archive"></i> Archivados
+                    </a>
+                </div>
+
+                <!-- NUEVO MATERIAL -->
+                <a href="{% url 'crear_material' %}" class="btn btn-success btn-new-material">
+                    <i class="bi bi-plus-lg"></i> Nuevo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-materials shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Código</th>
+                        <th>Tipo</th>
+                        <th>Autor / Marca</th>
+                        <th class="text-center">Stock</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in page_obj %}
+                    <tr class="{% if not m.activo %}fila-archivada{% endif %}">
+                        <td class="materials-title-cell">
+                            <span>{{ m.titulo }}</span>
+                        </td>
+                        <td class="small text-muted">
+                            {{ m.codigo }}
+                        </td>
+                        <td>
+                            <span class="badge-tipo">{{ m.tipo }}</span>
+                        </td>
+                        <td>
+                            {{ m.autor }}
+                        </td>
+                        
+                        <td class="text-center">
+                            {% if m.cantidad > 0 %}
+                                <span class="badge badge-stock bg-secondary">
+                                    <i class="bi bi-box-seam"></i> {{ m.cantidad }}
+                                </span>
+                            {% else %}
+                                <span class="badge badge-stock bg-danger">
+                                    <i class="bi bi-exclamation-circle"></i> 0
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {% if m.activo %}
+                                <span class="badge-estado-activo">
+                                    <i class="bi bi-check-circle"></i> Activo
+                                </span>
+                            {% else %}
+                                <span class="badge-estado-archivado">
+                                    <i class="bi bi-archive-fill"></i> Archivado
+                                </span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{% url 'editar_material' m.id %}"
+                                   class="btn btn-sm btn-outline-primary btn-sm-icon"
+                                   title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                
+                                {% if m.activo %}
+                                    <a href="{% url 'eliminar_material' m.id %}"
+                                       class="btn btn-sm btn-outline-warning btn-sm-icon"
+                                       title="Archivar">
+                                        <i class="bi bi-archive-fill"></i>
+                                    </a>
+                                {% else %}
+                                    <form action="{% url 'reactivar_material' m.id %}"
+                                          method="POST"
+                                          onsubmit="return confirm('¿Reactivar material?');">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-outline-success btn-sm-icon" title="Reactivar">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="bi bi-search"></i>
+                                <h5 class="mb-1">No se encontraron materiales</h5>
+                                <p class="mb-0">Ajusta los criterios de búsqueda o crea un nuevo material en el catálogo.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-light">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.previous_page_number }}&estado={{ estado_actual }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                               &laquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+                    
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="?page={{ i }}&estado={{ estado_actual }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                                   {{ i }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page_obj.next_page_number }}&estado={{ estado_actual }}{% if search_query %}&q={{ search_query }}{% endif %}">
+                               &raquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(function() {
+        $("#input-busqueda").autocomplete({
+            source: "{% url 'buscar_sugerencias' %}",
+            minLength: 2
+        });
+    });
+</script>
+{% endblock %}

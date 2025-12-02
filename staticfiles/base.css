@@ -1,0 +1,142 @@
+/* --- PALETA DE COLORES & VARIABLES --- */
+:root {
+    --primary-color: #2c3e50;    /* Azul marino elegante */
+    --secondary-color: #34495e;  /* Azul grisáceo */
+    --accent-color: #1abc9c;     /* Verde esmeralda */
+    --bg-light: #f8f9fa;         /* Fondo general claro */
+    --text-dark: #212529;        /* Texto principal */
+    --card-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text-dark);
+}
+
+/* --- BARRA DE NAVEGACIÓN --- */
+.navbar-custom {
+    background-color: var(--primary-color) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* --- TARJETAS GENÉRICAS (Cards) --- */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+/* --- BOTONES --- */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+.btn-success {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.btn-success:hover {
+    background-color: #16a085;
+    border-color: #16a085;
+}
+
+/* --- UTILIDADES --- */
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--accent-color);
+    display: inline-block;
+    padding-right: 2rem;
+}
+
+/* =========================================
+   NUEVOS ESTILOS PARA EL HOME (INICIO)
+   ========================================= */
+
+/* 1. El Banner Principal (Hero) */
+.hero-section {
+    /* Usamos ruta absoluta */
+    background: linear-gradient(rgba(15, 44, 74, 0.85), rgba(15, 44, 74, 0.7)), url('/static/img/inicio/banner_fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* Altura mínima para que siempre se vea grande */
+    min-height: 500px;
+    
+    /* Centrado vertical perfecto */
+    display: flex;
+    align-items: center;
+    
+    /* Texto */
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    
+    /* Espaciado interno */
+    padding: 4rem 0;
+}
+
+/* 2. La Sección Azul Institucional */
+.bg-institucional {
+    background-color: #0f2c4a; /* Azul oscuro corporativo */
+    color: white;
+}
+
+/* 3. Caja de Texto Informativa */
+.info-box {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 4. Tarjetas de Destacados (Home) */
+.card-destacado {
+    transition: transform 0.3s;
+    border: none;
+    background-color: white;
+    color: #333;
+}
+.card-destacado:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+.card-destacado img {
+    height: 200px;
+    object-fit: cover;
+}
+
+body.home-page .navbar-custom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: rgba(15, 44, 74, 0.8) !important; /* Azul semi-transparente */
+    box-shadow: none; /* Sin sombra para que se mezcle */
+}
+
+/* Ajustamos el banner para que cubra toda la pantalla si quieres */
+.hero-section {
+    margin-top: 0; /* Asegura que pegue arriba */
+    padding-top: 80px; /* Espacio para que el texto no quede tapado por el menú */
+}

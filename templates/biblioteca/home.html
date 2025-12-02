@@ -1,0 +1,359 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block title %}Bienvenido - Biblioteca DGAC{% endblock %}
+{% block main_class %}container-fluid p-0{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ===========================
+       HOME – ESTILO GENERAL
+    ============================ */
+    .hero-section {
+        position: relative;
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        color: #f9fafb;
+        background-image:
+            linear-gradient(120deg, rgba(15,23,42,0.95), rgba(30,64,175,0.85)),
+            url("{% static 'img/inicio/banner_fondo.jpg' %}");
+        background-size: cover;
+        background-position: center;
+    }
+
+    .hero-section h1 {
+        text-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    }
+
+    .hero-kpi {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
+
+    .hero-kpi-item {
+        background: rgba(15,23,42,0.75);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .hero-kpi-item i {
+        font-size: 1.1rem;
+    }
+
+    /* Bloque informativo DGAC */
+    .bg-institucional {
+        background: radial-gradient(circle at top left, #1d4ed8 0, #020617 55%, #020617 100%);
+        color: #e5e7eb;
+    }
+
+    .info-box {
+        background: rgba(15,23,42,0.85);
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        border: 1px solid rgba(148,163,184,0.4);
+        backdrop-filter: blur(8px);
+    }
+
+    .info-box ul li {
+        font-size: 0.98rem;
+    }
+
+    /* Cards de recomendaciones */
+    .card-recomendacion {
+        transition: all .2s ease-in-out;
+        border-radius: 1.1rem;
+    }
+
+    .card-recomendacion:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+    }
+
+    /* Cards de destacados */
+    .card-destacado {
+        border-radius: 1.1rem;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .card-destacado:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px rgba(15,23,42,0.25);
+    }
+
+    .card-destacado img {
+        filter: saturate(1.05);
+    }
+
+    /* Sección ranking */
+    .bg-ranking {
+        background: linear-gradient(to bottom, #f8fafc, #e5e7eb);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-section {
+            text-align: center;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+        .hero-kpi {
+            justify-content: center;
+        }
+        .hero-section h1 {
+            font-size: 2.3rem;
+        }
+    }
+</style>
+
+<!-- ============================================= -->
+<!-- SECCIÓN 1: HERO (BIENVENIDA) -->
+<!-- ============================================= -->
+<section class="hero-section">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <p class="text-uppercase small mb-2 text-blue-200">
+                    <i class="bi bi-shield-lock-fill me-1"></i> Prototipo académico · SIGB DGAC
+                </p>
+                <h1 class="display-3 fw-bold mb-3">
+                    Bienvenido a la Biblioteca DGAC
+                </h1>
+                <p class="lead fs-4 mb-4">
+                    Explora libros, manuales y materiales digitales. Gestiona tus préstamos, reservas y favoritos desde una sola plataforma.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <a href="{% url 'catalogo' %}" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-search me-2"></i> Ver Catálogo
+                    </a>
+
+                    {% if not request.user.is_authenticated %}
+                        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i> Crear Cuenta
+                        </a>
+                    {% else %}
+                        <a href="{% url 'mis_prestamos' %}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-collection me-2"></i> Mis Préstamos
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mini KPIs hero (opcional, sin datos dinámicos) -->
+                <div class="hero-kpi mt-4">
+                    <div class="hero-kpi-item">
+                        <i class="bi bi-collection-fill text-info"></i>
+                        <span>Catálogo unificado de libros y materiales</span>
+                    </div>
+                    <div class="hero-kpi-item">
+                        <i class="bi bi-clock-history text-warning"></i>
+                        <span>Historial completo de préstamos y reservas</span>
+                    </div>
+                    <div class="hero-kpi-item">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span>Sistema de favoritos y recomendaciones</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================= -->
+<!-- SECCIÓN 2: INFORMACIÓN INSTITUCIONAL -->
+<!-- ============================================= -->
+<section class="bg-institucional py-5">
+    <div class="container">
+        <div class="row align-items-center gy-4">
+            <div class="col-md-5 text-center">
+                <img src="{% static 'img/inicio/poster_info.png' %}" 
+                     alt="Plataforma Biblioteca" 
+                     class="img-fluid rounded shadow-lg"
+                     style="max-height: 420px; object-fit: contain;">
+            </div>
+            <div class="col-md-7">
+                <div class="info-box shadow-lg">
+                    <h2 class="fw-bold mb-3">
+                        <i class="bi bi-question-circle me-2 text-info"></i>
+                        ¿De qué trata nuestra plataforma?
+                    </h2>
+                    <p class="fs-5 lh-base mb-3">
+                        Como lector registrado, accedes a la colección completa de la Biblioteca DGAC:
+                        libros, manuales, revistas técnicas, normativa y materiales de apoyo.
+                    </p>
+                    <ul class="list-unstyled mt-3">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                            Busca y filtra por título, autor, categoría o tipo de material.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                            Consulta en línea la disponibilidad de copias físicas.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                            Reserva o solicita préstamos desde cualquier dispositivo.
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle-fill text-info me-2"></i>
+                            Revisa tu historial completo y mantén tus devoluciones al día.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================= -->
+<!-- SECCIÓN 3: MOTOR DE RECOMENDACIONES (IA) -->
+<!-- (Solo visible si el usuario está logueado) -->
+<!-- ============================================= -->
+{% if request.user.is_authenticated %}
+<section class="bg-white py-5 border-bottom">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 d-flex flex-wrap justify-content-between align-items-end gap-2">
+                <div>
+                    <h3 class="border-bottom border-success pb-2 d-inline-block text-success">
+                        <i class="bi bi-stars me-2"></i> Sugerencias para Ti
+                    </h3>
+                    <p class="text-muted mt-2 mb-0">
+                        Basado en las categorías que más has utilizado en tus préstamos recientes.
+                    </p>
+                </div>
+                <small class="text-muted">
+                    <i class="bi bi-lock-fill me-1"></i> Solo visible para tu usuario
+                </small>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            {% if recomendados %}
+                {% for libro in recomendados %}
+                <div class="col-md-4">
+                    <div class="card card-recomendacion h-100 shadow-sm border-success border-2 position-relative overflow-hidden">
+                        <!-- Etiqueta "Top Pick" -->
+                        <div class="position-absolute top-0 end-0 bg-success text-white px-3 py-1 rounded-bottom-start shadow-sm" style="font-size: 0.8rem; font-weight: bold; z-index: 10;">
+                            <i class="bi bi-hand-thumbs-up-fill"></i> Top Pick
+                        </div>
+
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-lightbulb-fill text-success display-4 opacity-75"></i>
+                            </div>
+                            
+                            <h5 class="card-title text-truncate fw-bold">{{ libro.titulo }}</h5>
+                            <p class="text-muted small mb-3">
+                                {{ libro.autor }} <br> 
+                                <span class="badge bg-light text-dark border mt-1">{{ libro.categoria.nombre }}</span>
+                            </p>
+                            
+                            <div class="d-grid">
+                                <a href="{% url 'detalle_libro' libro.id %}" class="btn btn-outline-success stretched-link">
+                                    Ver Libro
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="alert alert-light border-info shadow-sm d-flex align-items-center p-4">
+                        <i class="bi bi-info-circle-fill text-info display-6 me-4"></i>
+                        <div>
+                            <h4 class="alert-heading text-info fw-bold mb-1">
+                                ¡Aún estamos aprendiendo tus gustos!
+                            </h4>
+                            <p class="mb-0 text-muted">
+                                Realiza tus primeros préstamos para que el sistema pueda identificar tus categorías favoritas
+                                y ofrecerte recomendaciones personalizadas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ============================================= -->
+<!-- SECCIÓN 4: RANKING GLOBAL (DESTACADOS) -->
+<!-- ============================================= -->
+<section class="bg-ranking py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h3 class="border-bottom border-primary pb-2 d-inline-block text-primary mb-0">
+                    <i class="bi bi-trophy-fill me-2"></i> Lo Más Solicitado (Global)
+                </h3>
+                <small class="text-muted">
+                    <i class="bi bi-bar-chart-line me-1"></i> Basado en el total histórico de préstamos
+                </small>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for item in destacados %}
+            <div class="col-md-4">
+                <div class="card card-destacado h-100 shadow-sm position-relative bg-white">
+                    <div class="position-absolute top-0 start-0 m-2">
+                        <span class="badge bg-warning text-dark fs-6 shadow">#{{ forloop.counter }}</span>
+                    </div>
+
+                    {% with numero=forloop.counter|stringformat:"s" %}
+                    {% with nombre_imagen="img/inicio/destacado"|add:numero|add:".jpg" %}
+                        <img src="{% static nombre_imagen %}" class="card-img-top" alt="Destacado" 
+                             onerror="this.src='https://via.placeholder.com/400x200?text=Top+{{ forloop.counter }}'"
+                             style="height: 200px; object-fit: cover;">
+                    {% endwith %}
+                    {% endwith %}
+
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate mb-1">{{ item.obj.titulo }}</h5>
+                        <p class="card-text small text-muted mb-2">
+                            {% if item.es_libro %}
+                                <i class="bi bi-book-fill me-1"></i> Libro
+                            {% else %}
+                                <i class="bi bi-archive-fill me-1"></i> Material
+                            {% endif %}
+                        </p>
+                        <p class="fw-bold text-primary small mb-3">
+                            <i class="bi bi-fire"></i> {{ item.total }} préstamos
+                        </p>
+
+                        {% if item.es_libro %}
+                            <a href="{% url 'detalle_libro' item.obj.id %}" class="btn btn-outline-primary btn-sm stretched-link w-100">
+                                Ver Detalle
+                            </a>
+                        {% else %}
+                            <a href="{% url 'detalle_material' item.obj.id %}" class="btn btn-outline-primary btn-sm stretched-link w-100">
+                                Ver Detalle
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-info shadow-sm">
+                    Aún no hay suficientes datos para mostrar destacados.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends "layout/base.html" %}
+{% load static %}
+{% load permisos %}
+
+{% block title %}
+    {{ material.titulo }} - Detalle
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .item-layout {
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+    }
+    .item-cover-card {
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    .item-cover-card .card-body {
+        background: linear-gradient(145deg, #0f172a, #0ea5e9);
+        color: #e5e7eb;
+    }
+    .item-cover-icon {
+        font-size: 6rem;
+    }
+    .item-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .2rem .6rem;
+        border-radius: 999px;
+        font-size: .8rem;
+        background: #e5e7eb;
+        color: #0f172a;
+    }
+    .item-meta-label {
+        font-size: .8rem;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: #6b7280;
+        margin-bottom: .15rem;
+    }
+</style>
+
+<div class="container item-layout">
+
+    <!-- Botón volver -->
+    <div class="mb-3">
+        <a href="{% url 'catalogo' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver al catálogo
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Columna izquierda: icono + acciones -->
+        <div class="col-md-4">
+            <div class="card shadow-sm item-cover-card h-100">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <div class="mb-3">
+                        <i class="bi bi-archive item-cover-icon"></i>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="item-chip">
+                            <i class="bi bi-box-seam"></i> Material
+                        </span>
+                    </div>
+
+                    <p class="small mb-0 text-gray-200">
+                        {{ material.tipo }} · {{ material.formato|default:"Formato no especificado" }}
+                    </p>
+                </div>
+
+                <div class="card-footer bg-white border-0">
+                    {% if request.user.is_authenticated %}
+                        <div class="d-grid gap-2">
+
+                            {# Lógica préstamo / reserva #}
+                            {% if esta_agotado %}
+                                {% if ya_reservado_por_mi %}
+                                    <button class="btn btn-info btn-sm" disabled>
+                                        <i class="bi bi-check-circle me-1"></i> Reservado por ti
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'reservar_material' material.id %}" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-calendar-plus me-1"></i> Reservar material
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% if reserva_lista_para_mi %}
+                                    <a href="{% url 'prestar_material' material.id %}" class="btn btn-success btn-sm">
+                                        <i class="bi bi-box-arrow-in-down me-1"></i> ¡Retirar mi reserva!
+                                    </a>
+                                {% elif reserva_lista_para_otro %}
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        <i class="bi bi-person-lock me-1"></i> Reservado por otro
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'prestar_material' material.id %}" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-arrow-down-circle me-1"></i> Pedir material
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+
+                            {# Favoritos #}
+                            <a href="{% url 'agregar_favorito' material.id %}?tipo=material"
+                               class="btn btn-sm {% if es_favorito %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                <i class="bi {% if es_favorito %}bi-heart-fill{% else %}bi-heart{% endif %} me-1"></i>
+                                {% if es_favorito %}Quitar de favoritos{% else %}Añadir a favoritos{% endif %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center mb-0 small">
+                            <a href="{% url 'login' %}">Inicia sesión</a> para pedir este ítem.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: detalle -->
+        <div class="col-md-8">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                    <h1 class="h2 fw-bold mb-1">{{ material.titulo }}</h1>
+                    <h4 class="h6 text-muted mb-0">
+                        {% if material.autor %}
+                            Autor/Entidad: {{ material.autor }}
+                        {% else %}
+                            <span class="fst-italic">Autor no especificado</span>
+                        {% endif %}
+                    </h4>
+                </div>
+
+                <div class="text-md-end">
+                    {% if esta_agotado %}
+                        <span class="badge bg-danger fs-6 mb-1">
+                            Agotado (0 de {{ material.cantidad }})
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success fs-6 mb-1">
+                            {{ cantidad_disponible }} de {{ material.cantidad }} disponible(s)
+                        </span>
+                    {% endif %}
+                    <div class="small text-muted">
+                        {% if material.activo %}
+                            <i class="bi bi-check-circle-fill text-success me-1"></i> En catálogo
+                        {% else %}
+                            <i class="bi bi-archive-fill text-danger me-1"></i> Archivado
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Descripción -->
+            <div class="mb-4">
+                <h5 class="mb-2">
+                    <i class="bi bi-text-paragraph me-1"></i> Descripción
+                </h5>
+                <p class="lead fs-6 mb-0">
+                    {% if material.descripcion %}
+                        {{ material.descripcion|linebreaks }}
+                    {% else %}
+                        <em class="text-muted">No hay descripción disponible para este ítem.</em>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Ficha técnica -->
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 bg-light">
+                        <div class="mb-2">
+                            <div class="item-meta-label">Tipo</div>
+                            <div>{{ material.tipo }}</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="item-meta-label">Código (Inventario)</div>
+                            <div class="text-monospace small">
+                                {{ material.codigo|default:"No registrado" }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="item-meta-label">Copias totales</div>
+                            <div>{{ material.cantidad }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="border rounded-3 p-3 bg-light">
+                        <div class="mb-2">
+                            <div class="item-meta-label">Formato</div>
+                            <div>{{ material.formato|default:"No especificado" }}</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="item-meta-label">Ubicación física</div>
+                            <div>{{ material.ubicacion|default:"No especificada" }}</div>
+                        </div>
+                        <div>
+                            <div class="item-meta-label">Publicado</div>
+                            <div>
+                                {{ material.publicado|date:"d \\d\\e F, Y"|default:"Desconocida" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>  <!-- /col-md-8 -->
+    </div>      <!-- /row -->
+</div>          <!-- /container -->
+
+{% endblock %}

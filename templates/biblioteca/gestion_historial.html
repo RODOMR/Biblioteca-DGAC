@@ -1,0 +1,363 @@
+{% extends "layout/base.html" %}
+{% load permisos %}
+
+{% block title %}Auditoría del Sistema{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+        --dgac-warning: #f59e0b;
+        --dgac-success: #16a34a;
+    }
+
+    .audit-page {
+        padding-top: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .audit-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .audit-header h1 i {
+        font-size: 2.1rem;
+        color: var(--dgac-accent);
+    }
+
+    .audit-header p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6b7280;
+    }
+
+    .btn-back {
+        border-radius: 999px;
+    }
+
+    .btn-log {
+        border-radius: 999px;
+        font-weight: 500;
+    }
+
+    /* Panel de pruebas */
+    .card-test-panel {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(245, 158, 11, 0.25);
+        border: none;
+    }
+
+    .card-test-panel .card-header {
+        background: linear-gradient(135deg, #fbbf24, #d97706);
+        color: #111827;
+        font-weight: 600;
+    }
+
+    .card-test-panel .card-body {
+        background: #fffbeb;
+    }
+
+    .fecha-label {
+        font-size: 0.9rem;
+    }
+
+    /* Tabla principal */
+    .card-audit {
+        border-radius: 1rem;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+    }
+
+    .card-audit .card-header {
+        background: linear-gradient(135deg, var(--dgac-navy), var(--dgac-mid));
+        color: #f9fafb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .card-audit .card-header span {
+        font-size: 0.9rem;
+    }
+
+    .audit-page-chip {
+        background: rgba(248, 250, 252, 0.15);
+        border-radius: 999px;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.8rem;
+    }
+
+    .table-audit-wrapper {
+        max-height: 520px;
+        overflow-y: auto;
+        background: var(--dgac-soft-bg);
+    }
+
+    .table-audit {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+
+    .table-audit thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #0f172a;
+        color: #f9fafb;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.75rem;
+    }
+
+    .table-audit thead th {
+        border: none;
+        white-space: nowrap;
+    }
+
+    .table-audit tbody tr {
+        transition: background-color 0.12s ease, transform 0.05s ease;
+    }
+
+    .table-audit tbody tr:hover {
+        background-color: rgba(30, 136, 229, 0.06);
+        transform: translateY(-1px);
+    }
+
+    .badge-usuario {
+        border-radius: 999px;
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+    }
+
+    .accion-respaldo {
+        color: var(--dgac-success);
+    }
+
+    .accion-riesgo {
+        color: #dc2626;
+    }
+
+    .detalle-col {
+        max-width: 420px;
+    }
+
+    /* Paginación */
+    .card-audit .card-footer {
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .pagination .page-link {
+        border-radius: 999px !important;
+    }
+
+    @media (max-width: 768px) {
+        .audit-header h1 {
+            font-size: 1.8rem;
+        }
+        .audit-header-actions {
+            margin-top: 0.75rem;
+            text-align: left !important;
+        }
+    }
+</style>
+
+<div class="audit-page">
+
+    <!-- HEADER -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-7 audit-header">
+            <h1>
+                <i class="bi bi-clipboard-data"></i>
+                Auditoría del Sistema
+            </h1>
+            <p>Registro completo de actividades, cambios y respaldos automáticos del SIGB.</p>
+        </div>
+        <div class="col-md-5 text-md-end audit-header-actions">
+            <a href="{% url 'gestion' %}" class="btn btn-outline-secondary btn-back me-2">
+                <i class="bi bi-arrow-left"></i> Volver a Gestión
+            </a>
+            {% if boton_deshabilitado %}
+                <button class="btn btn-success btn-log" disabled>
+                    <i class="bi bi-download"></i> Bloqueado (28 días)
+                </button>
+            {% else %}
+                <a href="{% url 'exportar_historial' %}" class="btn btn-success btn-log">
+                    <i class="bi bi-download"></i> Descarga Manual .LOG
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PANEL DE PRUEBAS / RESPALDO AUTO -->
+    <div class="card card-test-panel mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>
+                <i class="bi bi-tools me-2"></i>
+                Panel de pruebas · Respaldo automático
+            </span>
+        </div>
+        <div class="card-body py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-md-4">
+                    <span class="fecha-label fw-semibold">Último respaldo automático:</span><br>
+                    {% if config_sistema.fecha %}
+                        <span class="text-success fw-semibold">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            {{ config_sistema.fecha|date:"d/m/Y" }}
+                        </span>
+                    {% else %}
+                        <span class="text-danger fw-semibold">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            NUNCA
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="col-md-8 text-md-end">
+                    <form action="{% url 'gestion_historial' %}" method="POST"
+                          class="d-inline-flex flex-wrap gap-2 align-items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="guardar_fecha">
+                        <input type="date"
+                               class="form-control form-control-sm"
+                               name="nueva_fecha"
+                               required
+                               style="width: 140px;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            Forzar fecha
+                        </button>
+                    </form>
+                    <form action="{% url 'gestion_historial' %}" method="POST" class="d-inline ms-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="limpiar">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DE HISTORIAL -->
+    <div class="card card-audit">
+        <div class="card-header px-3 py-2">
+            <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+                <span>
+                    <i class="bi bi-clock-history me-2"></i>
+                    Historial de actividad
+                    <span class="ms-1">· Total: <strong>{{ page_obj.paginator.count }}</strong></span>
+                </span>
+                <span class="audit-page-chip">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+            </div>
+        </div>
+
+        <div class="table-audit-wrapper">
+            <table class="table table-striped table-hover table-audit align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in page_obj %}
+                        <tr>
+                            <td style="white-space: nowrap;">
+                                {{ registro.fecha|date:"d/m/Y H:i" }}
+                            </td>
+                            <td>
+                                {% if registro.usuario %}
+                                    <span class="badge-usuario bg-info text-dark">
+                                        {{ registro.usuario.username }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge-usuario bg-dark text-white">
+                                        Sistema
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if 'Respaldo' in registro.accion %}
+                                    <strong class="accion-respaldo">
+                                        {{ registro.accion }}
+                                    </strong>
+                                {% elif 'Eliminar' in registro.accion or 'Archivar' in registro.accion %}
+                                    <strong class="accion-riesgo">
+                                        {{ registro.accion }}
+                                    </strong>
+                                {% else %}
+                                    <strong>{{ registro.accion }}</strong>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small detalle-col">
+                                {{ registro.detalle|truncatechars:80 }}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                Aún no hay actividad registrada.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-light">
+            <nav aria-label="Navegación">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}

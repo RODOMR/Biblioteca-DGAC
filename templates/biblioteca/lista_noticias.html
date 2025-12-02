@@ -1,0 +1,204 @@
+{% extends "layout/base.html" %}
+{% load permisos %}
+
+{% block title %}Noticias DGAC{% endblock %}
+
+{% block content %}
+
+<style>
+  .news-hero-title {
+      font-size: 2rem;
+      font-weight: 700;
+  }
+  .news-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .2rem .75rem;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: .8rem;
+      font-weight: 500;
+  }
+  .news-card {
+      border-radius: 1.25rem;
+      overflow: hidden;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+      border: 1px solid rgba(148,163,184,.25);
+  }
+  .news-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 1.25rem 2rem rgba(15,23,42,.18);
+      border-color: rgba(59,130,246,.55);
+  }
+  .news-image-placeholder {
+      height: 230px;
+      background: radial-gradient(circle at top, #e5e7eb, #cbd5f5);
+  }
+  .hover-underline:hover {
+      text-decoration: underline;
+  }
+  .badge-date {
+      font-size: .75rem;
+      background: rgba(15,23,42,.06);
+      border-radius: 999px;
+      padding: .2rem .6rem;
+  }
+</style>
+
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="news-hero-title mb-1">
+            <i class="bi bi-newspaper me-2 text-primary"></i> Noticias DGAC
+        </h1>
+        <p class="text-muted mb-2">Novedades, anuncios y actividades recientes de la biblioteca.</p>
+        <span class="news-chip">
+            <i class="bi bi-broadcast"></i>
+            {% if page_obj.paginator.count %}
+                {{ page_obj.paginator.count }} noticia(s) publicadas
+            {% else %}
+                Sin noticias aún
+            {% endif %}
+        </span>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        {% if request.user|tiene_grupo:"Administrador" %}
+            <a href="{% url 'crear_noticia' %}" class="btn btn-primary shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> Publicar noticia
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    {% for n in page_obj %}
+    <div class="col-md-6 mb-4">
+        <article class="card news-card h-100">
+            <a href="{% url 'detalle_noticia' n.id %}" class="text-decoration-none text-dark">
+                {% if n.imagen %}
+                    <div class="position-relative">
+                        <img src="{{ n.imagen.url }}" class="card-img-top"
+                             style="height: 230px; object-fit: cover;" alt="Imagen noticia">
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-1">
+                            <i class="bi bi-megaphone-fill me-1"></i> DGAC Informa
+                        </span>
+                    </div>
+                {% else %}
+                    <div class="card-img-top news-image-placeholder d-flex flex-column align-items-center justify-content-center text-muted">
+                        <i class="bi bi-image-alt" style="font-size: 3rem;"></i>
+                        <span class="small mt-1">Sin imagen adjunta</span>
+                    </div>
+                {% endif %}
+            </a>
+            
+            <div class="card-body">
+                <a href="{% url 'detalle_noticia' n.id %}" class="text-decoration-none">
+                    <h4 class="card-title fw-bold text-primary hover-underline mb-2">
+                        {{ n.titulo }}
+                    </h4>
+                </a>
+
+                <p class="text-muted small mb-3 d-flex flex-wrap align-items-center gap-2 border-bottom pb-2">
+                    <span class="badge-date">
+                        <i class="bi bi-calendar3 me-1"></i>{{ n.fecha|date:"d \\d\\e F, Y" }}
+                    </span>
+                    <span class="text-muted">
+                        <i class="bi bi-person-circle me-1"></i>{{ n.autor.first_name|default:"Admin" }}
+                    </span>
+                </p>
+                
+                <p class="card-text text-secondary mb-0">
+                    {{ n.contenido|truncatewords:30 }}
+                </p>
+                
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <a href="{% url 'detalle_noticia' n.id %}" class="btn btn-sm btn-outline-primary">
+                        Leer completa <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    <span class="small text-muted">
+                        <i class="bi bi-clock-history me-1"></i>Actualizado
+                        {{ n.fecha|date:"d/m/Y" }}
+                    </span>
+                </div>
+            </div>
+            
+            {% if request.user|tiene_grupo:"Administrador" %}
+            <div class="card-footer bg-white border-0 pt-0 pb-3 px-3">
+                <form action="{% url 'eliminar_noticia' n.id %}"
+                      method="POST"
+                      class="text-end"
+                      onsubmit="return confirm('¿Estás seguro de eliminar esta noticia permanentemente?');">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </article>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="text-muted opacity-75">
+            <i class="bi bi-journal-x display-1 d-block mb-3"></i>
+            <p class="fs-4 mb-1">No hay noticias publicadas aún.</p>
+            <p class="small">Cuando el equipo de biblioteca publique novedades, las verás aquí.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="row mt-4">
+    <div class="col-12">
+        <nav aria-label="Paginación noticias">
+            <ul class="pagination justify-content-center mb-0">
+
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span> <span class="d-none d-md-inline">Anterior</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <span aria-hidden="true">&laquo;</span> <span class="d-none d-md-inline">Anterior</span>
+                        </span>
+                    </li>
+                {% endif %}
+
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                            <span class="d-none d-md-inline">Siguiente</span> <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <span class="d-none d-md-inline">Siguiente</span> <span aria-hidden="true">&raquo;</span>
+                        </span>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

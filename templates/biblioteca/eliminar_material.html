@@ -1,0 +1,46 @@
+{% extends "layout/base.html" %}
+
+{% block title %}
+    Confirmar Archivado
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">Confirmar Archivado de Material</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">¿Estás seguro de que deseas archivar este ítem?</h5>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Título:</strong> {{ material.titulo }} <br>
+                        <strong>Código:</strong> {{ material.codigo }} <br>
+                        <strong>Tipo:</strong> {{ material.tipo }}
+                    </div>
+                    
+                    <p>
+                        Esta acción NO es permanente. El material se marcará como "Inactivo"
+                        y desaparecerá del catálogo público.
+                        Podrás reactivarlo más tarde.
+                    </p>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <hr>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'gestion_materiales' %}" class="btn btn-secondary me-md-2">
+                                No, cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                Sí, archivar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,467 @@
+{% extends "layout/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+        --dgac-danger: #c0392b;
+    }
+
+    .reports-page {
+        padding-top: 0.5rem;
+        padding-bottom: 2rem;
+        background: var(--dgac-soft-bg);
+    }
+
+    .reports-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dgac-navy);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .reports-header h1 i {
+        font-size: 1.9rem;
+        color: var(--dgac-accent);
+    }
+
+    .reports-header p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6c757d;
+    }
+
+    .btn-excel {
+        border-radius: 999px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #16a34a;
+        border-color: #16a34a;
+    }
+
+    .btn-excel i {
+        font-size: 1.1rem;
+    }
+
+    .btn-excel:hover {
+        background: #15803d;
+        border-color: #15803d;
+    }
+
+    /* KPI cards */
+    .kpi-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+        position: relative;
+        isolation: isolate;
+    }
+
+    .kpi-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.12;
+        background: radial-gradient(circle at top right, #ffffff, transparent 55%);
+        pointer-events: none;
+    }
+
+    .kpi-card-primary {
+        background: linear-gradient(135deg, var(--dgac-navy), var(--dgac-mid));
+        color: #f8f9fa;
+    }
+
+    .kpi-card-info {
+        background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
+        color: #f8f9fa;
+    }
+
+    .kpi-card-success {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: #f8f9fa;
+    }
+
+    .kpi-card-danger {
+        background: linear-gradient(135deg, var(--dgac-danger), #e11d48);
+        color: #f8f9fa;
+    }
+
+    .kpi-card .card-body {
+        position: relative;
+        z-index: 1;
+    }
+
+    .kpi-card h5 {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.3rem;
+        opacity: 0.9;
+    }
+
+    .kpi-card h2 {
+        font-size: 2.4rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .kpi-subtext {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        font-weight: 500;
+    }
+
+    /* Card gráfico principal */
+    .chart-card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .chart-card .card-header {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .chart-card .card-header h5 {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin: 0;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .chart-card .card-header h5 i {
+        color: var(--dgac-accent);
+    }
+
+    #chartSelector {
+        border-radius: 999px;
+        font-size: 0.9rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 430px;
+    }
+
+    /* Tabla de vencidos */
+    .card-vencidos {
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 8px 22px rgba(127, 29, 29, 0.2);
+        border: 1px solid rgba(220, 53, 69, 0.35);
+    }
+
+    .card-vencidos .badge {
+        border-radius: 999px;
+    }
+
+    .card-vencidos thead {
+        background: #fff5f5;
+    }
+
+    .card-vencidos .table tbody tr:hover {
+        background-color: #fff1f2;
+    }
+
+    /* Alert sin vencidos */
+    .alert-sin-vencidos {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 6px 18px rgba(22, 163, 74, 0.18);
+    }
+
+    @media (max-width: 768px) {
+        .reports-header h1 {
+            font-size: 1.7rem;
+        }
+        .btn-excel {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container-fluid reports-page">
+
+    <!-- HEADER -->
+    <div class="row align-items-center mb-4 reports-header">
+        <div class="col-md-8">
+            <h1>
+                <i class="bi bi-bar-chart-line-fill"></i>
+                Reportes y Métricas
+            </h1>
+            <p>Visión general del estado operativo de la Biblioteca DGAC en tiempo cercano al real.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'exportar_reporte_excel' %}" class="btn btn-success btn-lg btn-excel shadow-sm">
+                <i class="bi bi-file-earmark-excel"></i>
+                Exportar Excel Completo
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-3">
+            <div class="card kpi-card kpi-card-primary h-100">
+                <div class="card-body text-center">
+                    <h5>Préstamos activos</h5>
+                    <h2 class="fw-bold">{{ total_prestamos_activos }}</h2>
+                    <div class="kpi-subtext">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Ítems en circulación
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card kpi-card kpi-card-info h-100">
+                <div class="card-body text-center">
+                    <h5>Usuarios</h5>
+                    <h2 class="fw-bold">{{ total_usuarios }}</h2>
+                    <div class="kpi-subtext">
+                        <i class="bi bi-people-fill"></i>
+                        Comunidad total registrada
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card kpi-card kpi-card-success h-100">
+                <div class="card-body text-center">
+                    <h5>Inventario</h5>
+                    <h2 class="fw-bold">{{ total_libros|add:total_materiales }}</h2>
+                    <div class="kpi-subtext">
+                        <i class="bi bi-collection-fill"></i>
+                        {{ total_libros }} libros · {{ total_materiales }} materiales
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card kpi-card kpi-card-danger h-100">
+                <div class="card-body text-center">
+                    <h5>Préstamos vencidos</h5>
+                    <h2 class="fw-bold">{{ total_vencidos }}</h2>
+
+                    {% if total_vencidos > 0 %}
+                        <form action="{% url 'enviar_recordatorios' %}" method="POST"
+                              onsubmit="return confirm('¿Enviar correos a todos los morosos?');">
+                            {% csrf_token %}
+                            <button class="btn btn-light btn-sm text-danger fw-bold w-100 shadow-sm mt-2">
+                                <i class="bi bi-envelope-exclamation"></i>
+                                Enviar recordatorios
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="badge bg-white text-danger mt-2 px-3 py-1">
+                            <i class="bi bi-check-circle-fill"></i> Todo al día
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART DINÁMICO -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card chart-card">
+                <div class="card-header bg-white px-4 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-eye"></i>
+                        Visualización dinámica
+                    </h5>
+                    
+                    <select id="chartSelector"
+                            class="form-select w-auto fw-semibold border-primary text-primary shadow-sm"
+                            style="cursor: pointer;">
+                        <option value="estado">Estado de préstamos</option>
+                        <option value="inventario">Top 10 libros más prestados</option>
+                        <option value="categorias">Top categorías</option>
+                        <option value="autores">Top autores</option>
+                    </select>
+                </div>
+                
+                <div class="card-body chart-container">
+                    <canvas id="dynamicChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA VENCIDOS -->
+    {% if lista_vencidos %}
+    <div class="card card-vencidos mb-5">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                Detalle de préstamos vencidos
+            </h5>
+            <span class="badge bg-white text-danger px-3 py-1">
+                {{ lista_vencidos|length }} casos
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Ítem</th>
+                        <th>Usuario (email)</th>
+                        <th>Fecha límite</th>
+                        <th>Días de atraso</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in lista_vencidos %}
+                    <tr>
+                        <td class="fw-semibold">
+                            {% if i.prestamo.libro %}
+                                <i class="bi bi-book"></i>
+                                {{ i.prestamo.libro.titulo }}
+                            {% else %}
+                                <i class="bi bi-box-seam"></i>
+                                {{ i.prestamo.material.titulo }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ i.prestamo.usuario.first_name }} {{ i.prestamo.usuario.last_name }}<br>
+                            <small class="text-muted">{{ i.prestamo.usuario.email }}</small>
+                        </td>
+                        <td class="text-danger">
+                            {{ i.prestamo.fecha_devolucion|date:"d/m/Y" }}
+                        </td>
+                        <td>
+                            <span class="badge bg-danger rounded-pill">
+                                {{ i.dias_atraso }} días
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'devolver_libro' i.prestamo.id %}"
+                               class="btn btn-outline-danger btn-sm"
+                               onclick="return confirm('¿Registrar devolución forzada de este préstamo?');">
+                                Devolver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-success alert-sin-vencidos text-center py-4">
+            <h4 class="alert-heading mb-1">
+                <i class="bi bi-check-circle-fill"></i>
+                ¡Excelente!
+            </h4>
+            <p class="mb-0">No hay préstamos vencidos en este momento.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Datos desde Django para cada gráfico
+    const chartData = {
+        'estado': {
+            labels: ['Al día', 'Atrasados', 'Renovados'],
+            data: {{ chart_estado_data|safe }},
+            colors: ['#16a34a', '#dc2626', '#eab308'],
+            title: 'Estado de los préstamos activos'
+        },
+        'inventario': {
+            labels: {{ chart_inventario_labels|safe }},
+            data: {{ chart_inventario_data|safe }},
+            colors: ['#0b2447','#11468f','#1e88e5','#00a8ff','#4cd137','#20c997','#6366f1','#f97316','#ec4899','#22c55e'],
+            title: 'Top 10 libros más prestados'
+        },
+        'categorias': {
+            labels: {{ chart_categorias_labels|safe }},
+            data: {{ chart_categorias_data|safe }},
+            colors: ['#0ea5e9','#22c55e','#a855f7','#f97316','#e11d48'],
+            title: 'Categorías más leídas'
+        },
+        'autores': {
+            labels: {{ chart_autores_labels|safe }},
+            data: {{ chart_autores_data|safe }},
+            colors: ['#f97316','#ef4444','#0ea5e9','#22c55e','#1f2937'],
+            title: 'Top 5 autores solicitados'
+        }
+    };
+
+    // 2. Inicializar Chart.js con "Estado" por defecto
+    const ctx = document.getElementById('dynamicChart').getContext('2d');
+    let currentChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartData['estado'].labels,
+            datasets: [{
+                data: chartData['estado'].data,
+                backgroundColor: chartData['estado'].colors,
+                borderWidth: 2,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '55%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: { size: 13 }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: chartData['estado'].title,
+                    font: { size: 18, weight: '600' }
+                }
+            }
+        }
+    });
+
+    // 3. Cambio dinámico de dataset según selector
+    document.getElementById('chartSelector').addEventListener('change', function() {
+        const key = this.value;
+        const info = chartData[key];
+
+        currentChart.data.labels = info.labels;
+        currentChart.data.datasets[0].data = info.data;
+        currentChart.data.datasets[0].backgroundColor = info.colors;
+        currentChart.options.plugins.title.text = info.title;
+
+        currentChart.update();
+    });
+});
+</script>
+{% endblock %}
