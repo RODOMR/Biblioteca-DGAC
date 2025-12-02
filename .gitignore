@@ -8,5 +8,3 @@ __pycache__/
 robot_log.txt
 ejecutar_robot.bat
 
-db.sqlite3
-media/

@@ -76,7 +76,7 @@ urlpatterns = [
     path('gestion/reactivar-libro/<int:libro_id>/', views.reactivar_libro_view, name='reactivar_libro'),
     # Módulo 13 (Favoritos)
     path('favoritos/', views.mis_favoritos_view, name='mis_favoritos'),
-    path('favoritos/agregar/<int:libro_id>/', views.agregar_favorito_view, name='agregar_favorito'),
+    path('favoritos/agregar/<int:item_id>/', views.agregar_favorito_view, name='agregar_favorito'),
     #Perfil
     path('perfil/', views.perfil_view, name='perfil'),
     #Gestión de Materiales)
