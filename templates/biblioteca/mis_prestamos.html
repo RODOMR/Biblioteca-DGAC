@@ -1,7 +1,7 @@
 {% extends "layout/base.html" %}
-
-{% block title %}
-    Mis Préstamos
+{% load static %}
+{% load permisos %} {% block title %}
+    Mis Préstamos - SIGB
 {% endblock %}
 
 {% block content %}
@@ -161,7 +161,6 @@
 
 <div class="container mis-prestamos-page">
 
-    <!-- Cabecera -->
     <div class="row mb-4 align-items-center mis-prestamos-header">
         <div class="col-md-8">
             <h1>
@@ -172,7 +171,6 @@
         </div>
     </div>
 
-    <!-- Reservas listas para retiro -->
     {% if reservas_pendientes %}
     <div class="card card-reservas-listas border-0 mb-5">
         <div class="card-header bg-success text-white fw-bold d-flex justify-content-between align-items-center">
@@ -203,7 +201,7 @@
                                 {% endif %}
                             </p>
                             <small class="text-muted d-block">
-                                Vence: {{ r.fecha_limite_retiro|date:"d M" }}
+                                Vence: <strong>{{ r.fecha_limite_retiro|date:"d M" }}</strong>
                             </small>
                         </div>
                         <div class="card-footer bg-white border-0 text-center">
@@ -219,7 +217,6 @@
     </div>
     {% endif %}
 
-    <!-- Préstamos activos -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="section-title">
@@ -234,17 +231,16 @@
                             <tr>
                                 <th>Ítem</th>
                                 <th>Tipo</th>
-                                <th>Fecha préstamo</th>
-                                <th>Fecha devolución</th>
-                                <th>Progreso</th>
-                                <th>Estado</th>
+                                <th class="text-center">Fecha préstamo</th>
+                                <th class="text-center">Vence el</th>
+                                <th style="width: 15%;">Progreso</th>
+                                <th class="text-center">Estado</th>
                                 <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for p in prestamos %}
                             <tr class="{% if p.recordatorio %}row-alerta{% endif %}">
-                                <!-- Ítem -->
                                 <td class="fw-semibold text-dark">
                                     {% if p.libro %}
                                         <i class="bi bi-book text-primary me-1"></i> {{ p.libro.titulo }}
@@ -253,97 +249,78 @@
                                     {% endif %}
                                 </td>
                                 
-                                <!-- Tipo -->
                                 <td>
                                     {% if p.libro %}
-                                        <span class="badge badge-tipo bg-primary">
-                                            Libro
-                                        </span>
+                                        <span class="badge badge-tipo bg-primary">Libro</span>
                                     {% else %}
-                                        <span class="badge badge-tipo bg-info text-dark">
-                                            Material
-                                        </span>
+                                        <span class="badge badge-tipo bg-info text-dark">Material</span>
                                     {% endif %}
                                 </td>
                                 
-                                <!-- Fechas -->
-                                <td>{{ p.fecha_prestamo|date:"d/m/Y" }}</td>
-                                <td class="fw-bold {% if p.recordatorio %}text-danger{% endif %}">
+                                <td class="text-center text-muted">{{ p.fecha_prestamo|date:"d/m/Y" }}</td>
+                                <td class="text-center fw-bold {% if p.recordatorio %}text-danger{% else %}text-success{% endif %}">
                                     {{ p.fecha_devolucion|date:"d/m/Y" }}
                                 </td>
 
-                                <!-- Progreso de días del préstamo -->
-                                <td style="min-width: 180px;">
+                                <td>
                                     <div class="d-flex justify-content-between small text-muted mb-1">
-                                        <span>Uso del plazo</span>
+                                        <span>Uso</span>
                                         <span>{{ p.porcentaje_dias }}%</span>
                                     </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div 
-                                            class="progress-bar
-                                                {% if p.recordatorio %}
-                                                    bg-danger
-                                                {% elif p.renovado %}
-                                                    bg-warning
-                                                {% else %}
-                                                    bg-success
-                                                {% endif %}"
-                                            role="progressbar"
-                                            style="width: {{ p.porcentaje_dias }}%;"
-                                            aria-valuenow="{{ p.porcentaje_dias }}"
-                                            aria-valuemin="0"
-                                            aria-valuemax="100">
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar {% if p.porcentaje_dias > 90 %}bg-danger{% else %}bg-info{% endif %}"
+                                             role="progressbar"
+                                             style="width: {{ p.porcentaje_dias }}%">
                                         </div>
                                     </div>
                                 </td>
                                 
-                                <!-- Estado -->
-                                <td>
+                                <td class="text-center">
                                     {% if p.recordatorio %}
                                         <span class="badge badge-estado-alerta bg-danger text-wrap">
-                                            <i class="bi bi-exclamation-circle"></i>
-                                            {{ p.recordatorio }}
+                                            <i class="bi bi-exclamation-circle"></i> {{ p.recordatorio }}
                                         </span>
                                     {% elif p.renovado %}
                                         <span class="badge badge-estado-renovado">
-                                            <i class="bi bi-arrow-repeat"></i>
-                                            Renovado
+                                            <i class="bi bi-arrow-repeat"></i> Renovado
                                         </span>
                                     {% else %}
                                         <span class="badge badge-estado-ok">
-                                            <i class="bi bi-check-circle"></i>
-                                            Al día
+                                            <i class="bi bi-check-circle"></i> Al día
                                         </span>
                                     {% endif %}
                                 </td>
                                 
-                                <!-- Acciones -->
                                 <td class="text-end">
                                     <div class="btn-group" role="group">
                                         {% if not p.renovado and not p.recordatorio %}
                                             <a href="{% url 'renovar_prestamo' p.id %}"
-                                               class="btn btn-sm btn-outline-primary btn-sm-dgac">
-                                                Renovar
+                                               class="btn btn-sm btn-outline-primary btn-sm-dgac"
+                                               title="Renovar por 7 días más">
+                                                <i class="bi bi-arrow-repeat"></i> Renovar
                                             </a>
                                         {% elif p.renovado %}
-                                            <button class="btn btn-sm btn-light border btn-sm-dgac" disabled>
-                                                <i class="bi bi-check"></i> Renovado
+                                            <button class="btn btn-sm btn-light border btn-sm-dgac text-muted" disabled>
+                                                Renovado
                                             </button>
                                         {% endif %}
                                         
-                                        <a href="{% url 'devolver_libro' p.id %}" 
-                                           class="btn btn-sm btn-outline-success btn-sm-dgac"
-                                           onclick="return confirm('¿Confirmar devolución?');">
-                                            Devolver
-                                        </a>
+                                        {% if request.user.is_staff or request.user|tiene_grupo:"Cargador" or request.user|tiene_grupo:"Administrador" %}
+                                            <a href="{% url 'devolver_libro' p.id %}" 
+                                               class="btn btn-sm btn-outline-danger btn-sm-dgac ms-1"
+                                               onclick="return confirm('ADMINISTRADOR: ¿Confirmar devolución manual?');"
+                                               title="Forzar devolución">
+                                               <i class="bi bi-box-arrow-in-down"></i>
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="bi bi-emoji-smile display-5 d-block mb-3 text-primary"></i>
-                                    <p class="mb-2">No tienes préstamos activos actualmente.</p>
+                                    <i class="bi bi-emoji-smile display-5 d-block mb-3 text-primary opacity-50"></i>
+                                    <p class="mb-2">No tienes préstamos activos.</p>
                                     <a href="{% url 'catalogo' %}" class="btn btn-primary btn-sm btn-sm-dgac">
                                         <i class="bi bi-search"></i> Ir al catálogo
                                     </a>
@@ -357,7 +334,6 @@
         </div>
     </div>
 
-    <!-- Lista de espera -->
     {% if reservas_cola %}
     <div class="row mb-5">
         <div class="col-12">
@@ -382,7 +358,7 @@
                             </small>
                         </div>
                         <span class="badge bg-secondary rounded-pill px-3">
-                            En cola
+                            Posición: {{ forloop.counter }}
                         </span>
                     </div>
                     {% endfor %}
@@ -392,7 +368,6 @@
     </div>
     {% endif %}
 
-    <!-- Reservas canceladas / caducadas -->
     {% if reservas_canceladas %}
     <div class="accordion mb-5 shadow-sm" id="accordionCancelados">
         <div class="accordion-item border-danger rounded-3 overflow-hidden">
@@ -402,7 +377,7 @@
                         data-bs-toggle="collapse"
                         data-bs-target="#collapseOne">
                     <i class="bi bi-x-circle me-2"></i>
-                    Ver reservas canceladas / caducadas
+                    Ver reservas canceladas / caducadas recientes
                 </button>
             </h2>
             <div id="collapseOne"

@@ -1,0 +1,177 @@
+{% extends 'layout/base.html' %}
+{% load static %}
+
+{% block title %}Recepción de Devoluciones - SIGB{% endblock %}
+
+{% block content %}
+<style>
+    /* === ESTILOS VISUALES DGAC (Unificados) === */
+    :root {
+        --dgac-navy: #0b2447;
+        --dgac-mid: #11468f;
+        --dgac-accent: #1e88e5;
+        --dgac-soft-bg: #f5f7fb;
+        --dgac-success: #16a34a;
+    }
+
+    .gestion-page { padding-top: 0.5rem; padding-bottom: 1.5rem; }
+    .page-header h2 { color: var(--dgac-navy); font-weight: 700; }
+    
+    /* Cards */
+    .card-main {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+    
+    /* Card Oscura (Buscador) */
+    .card-dark {
+        background: var(--dgac-navy);
+        color: white;
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(11, 36, 71, 0.25);
+    }
+    .card-dark .card-header {
+        background: rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    /* Tablas */
+    .table-sticky-header thead th {
+        background-color: #f8f9fa;
+        position: sticky; top: 0; z-index: 1;
+    }
+    .btn-dgac-primary {
+        background-color: var(--dgac-accent); border-color: var(--dgac-accent); color: white;
+    }
+    .btn-dgac-primary:hover {
+        background-color: var(--dgac-mid); color: white;
+    }
+</style>
+
+<div class="container-fluid gestion-page">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+        <div>
+            <h2 class="mb-0"><i class="bi bi-box-arrow-in-down me-2"></i>Recepción de Libros</h2>
+            <p class="text-muted mb-0">Panel de Administrador: Busca y recibe libros de cualquier usuario.</p>
+        </div>
+        <a href="{% url 'gestion' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+
+    <div class="card card-dark mb-4">
+        <div class="card-header d-flex align-items-center py-3">
+            <i class="bi bi-search me-2 fs-5"></i>
+            <h5 class="mb-0">Buscador Global</h5>
+        </div>
+        <div class="card-body bg-light text-dark p-4">
+            <form method="GET" class="row g-3 align-items-center">
+                <div class="col">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
+                        <input type="text" name="busqueda" class="form-control border-start-0 form-control-lg" 
+                               placeholder="Buscar por Título, ISBN, Usuario o Email..." 
+                               value="{{ busqueda_actual }}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-dgac-primary btn-lg rounded-pill px-4">Buscar</button>
+                    {% if busqueda_actual %}
+                        <a href="{% url 'procesar_devolucion' %}" class="btn btn-outline-danger btn-lg rounded-pill px-3 ms-2">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if usuario_encontrado and busqueda_actual %}
+    <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-4 rounded-4">
+        <div class="bg-white p-2 rounded-circle me-3 text-info shadow-sm"><i class="bi bi-person-vcard fs-3"></i></div>
+        <div>
+            <h5 class="mb-0 text-dark">Resultados para: <strong>{{ usuario_encontrado.get_full_name|default:usuario_encontrado.username }}</strong></h5>
+            <small class="text-muted">{{ usuario_encontrado.email }}</small>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card card-main mb-5">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center py-3">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-journal-bookmark-fill me-2 fs-5"></i>
+                <h5 class="mb-0 fw-bold">Préstamos Activos (Pendientes)</h5>
+            </div>
+            <span class="badge bg-white text-success fw-bold rounded-pill px-3 fs-6">{{ prestamos_activos.count }} encontrados</span>
+        </div>
+        
+        <div class="table-responsive table-sticky-header" style="max-height: 500px; overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Usuario</th>
+                        <th>Ítem Prestado</th>
+                        <th class="text-center">Vencimiento</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end pe-4">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in prestamos_activos %}
+                    <tr class="{% if usuario_encontrado %}table-success bg-opacity-10{% endif %}">
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ p.usuario.first_name }} {{ p.usuario.last_name }}</div>
+                            <small class="text-muted"><i class="bi bi-person me-1"></i>{{ p.usuario.username }}</small>
+                        </td>
+                        
+                        <td>
+                            {% if p.libro %}
+                                <span class="text-success fw-semibold"><i class="bi bi-book-fill me-1"></i> {{ p.libro.titulo }}</span>
+                                <br><small class="text-muted" style="font-size: 0.75rem;">ISBN: {{ p.libro.isbn }}</small>
+                            {% else %}
+                                <span class="text-primary fw-semibold"><i class="bi bi-box-seam-fill me-1"></i> {{ p.material.titulo }}</span>
+                                <br><small class="text-muted" style="font-size: 0.75rem;">Cód: {{ p.material.codigo }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center fw-bold text-dark">{{ p.fecha_devolucion|date:"d/m/Y" }}</td>
+
+                        <td class="text-center">
+                            {% now "Y-m-d" as hoy_str %}
+                            {% if p.fecha_devolucion|date:"Y-m-d" < hoy_str %}
+                                <span class="badge bg-danger rounded-pill px-3">ATRASADO</span>
+                            {% else %}
+                                <span class="badge bg-success rounded-pill px-3">AL DÍA</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <form method="POST" onsubmit="return confirm('¿Confirmas la recepción de este ítem?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="prestamo_id" value="{{ p.id }}">
+                                <input type="hidden" name="confirmar_devolucion" value="true">
+                                
+                                <button type="submit" class="btn btn-success btn-sm fw-bold shadow-sm rounded-pill px-3">
+                                    <i class="bi bi-check-lg me-1"></i> RECIBIR
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-search display-4 opacity-50"></i>
+                            <p class="mt-3 mb-0">No se encontraron préstamos con ese criterio.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

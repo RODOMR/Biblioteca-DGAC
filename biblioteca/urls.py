@@ -106,5 +106,6 @@ urlpatterns = [
     path('noticias/<int:noticia_id>/', views.detalle_noticia_view, name='detalle_noticia'),
     path('gestion/procesar-retiro/', views.procesar_retiro_view, name='procesar_retiro'),
     path('gestion/tareas-diarias/', views.ejecutar_tareas_diarias_view, name='ejecutar_tareas_diarias'),
-] 
+    path('gestion/devoluciones/', views.procesar_devolucion_view, name='procesar_devolucion'),
+]   
     

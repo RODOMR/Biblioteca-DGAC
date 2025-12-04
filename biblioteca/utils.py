@@ -1,10 +1,10 @@
 import random
 import string
-import holidays # <--- IMPORTAR LIBRERÍA NUEVA
+import holidays 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 
 def generar_codigo_retiro():
     """Genera un código alfanumérico aleatorio de 6 caracteres."""
@@ -25,34 +25,42 @@ def enviar_correo_notificacion(destinatario, asunto, mensaje):
         except Exception as e:
             print(f"Error enviando correo: {e}")
 
-def calcular_fecha_habiles(dias=2):
+def calcular_fecha_habil(fecha_inicio, dias_a_sumar):
     """
-    Calcula la fecha sumando días hábiles.
-    Salta Sábados, Domingos Y FERIADOS DE CHILE.
+    Calcula una fecha futura sumando días hábiles a una fecha de inicio dada.
+    Salta Sábados (5), Domingos (6) y FERIADOS DE CHILE.
     """
-    fecha = timezone.now().date()
-    
-    # Cargamos los feriados de Chile para el año actual y el próximo
-    # (automáticamente sabe cuándo es Semana Santa, Fiestas Patrias, etc.)
+    # Aseguramos que fecha_inicio sea un objeto date (si viene datetime, lo convertimos)
+    if isinstance(fecha_inicio, type(timezone.now())):
+        fecha_actual = fecha_inicio.date()
+    else:
+        fecha_actual = fecha_inicio
+
+    # Cargamos los feriados de Chile dinámicamente
     feriados_chile = holidays.CL() 
     
-    contador = 0
-    while contador < dias:
-        fecha += timedelta(days=1)
+    dias_agregados = 0
+    
+    while dias_agregados < dias_a_sumar:
+        # Avanzamos un día
+        fecha_actual += timedelta(days=1)
         
         # REGLAS DE NEGOCIO:
-        # 1. No es Sábado (5) ni Domingo (6)
-        # 2. La fecha NO está en la lista de feriados de Chile
-        if fecha.weekday() < 5 and fecha not in feriados_chile:
-            contador += 1
+        # 1. Si es Sábado (5) o Domingo (6) -> saltar
+        # 2. Si está en feriados_chile -> saltar
+        if fecha_actual.weekday() >= 5 or fecha_actual in feriados_chile:
+            continue
+        
+        # Si es día hábil, sumamos al contador
+        dias_agregados += 1
             
-    return fecha
+    return fecha_actual
 
 def asignar_siguiente_reserva(libro=None, material=None):
     """
     Revisa si hay reservas en cola (PENDIENTE) y asigna el recurso liberado.
     """
-    from .models import Reserva # Importación local
+    from .models import Reserva # Importación local para evitar referencia circular
     
     filters = {'libro': libro, 'material': None} if libro else {'libro': None, 'material': material}
     
@@ -60,8 +68,10 @@ def asignar_siguiente_reserva(libro=None, material=None):
     
     if siguiente:
         siguiente.estado = 'PENDIENTE_RETIRO'
-        # USAMOS LA NUEVA LÓGICA DE DÍAS HÁBILES CHILENOS
-        siguiente.fecha_limite_retiro = calcular_fecha_habiles(2)
+        
+        # AQUI USAMOS LA NUEVA LÓGICA:
+        # Fecha inicio: Hoy. Días a sumar: 2 días hábiles para retirar.
+        siguiente.fecha_limite_retiro = calcular_fecha_habil(timezone.now().date(), 2)
         
         if not siguiente.codigo_retiro:
             siguiente.codigo_retiro = generar_codigo_retiro()
